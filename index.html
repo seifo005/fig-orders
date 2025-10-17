@@ -1,82 +1,45 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>إدارة حجوزات التين — v6.4.2 (Edit Fix)</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FIG Orders — Fresh Start v1.0</title>
 <style>
-  :root{
-    --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb;
-    --accent:#22c55e; --accent2:#3b82f6; --danger:#ef4444; --warning:#f59e0b;
-    --chip:#1f2937; --input:#0b1220; --border:#1f2937;
-    --header-h:64px;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji"; background:var(--bg); color:var(--text);}
-  header{ position:sticky; top:0; z-index:2000; background:#111827; border-bottom:1px solid var(--border); padding:10px 12px; }
-  h1{font-size:18px; margin:0 0 6px 0}
-  .sub{color:var(--muted); font-size:12px}
-  .nav{display:flex; gap:8px; margin-top:8px; flex-wrap:wrap}
-  .tab{border:1px solid var(--border); background:#0b1220; color:#cbd5e1; padding:8px 12px; border-radius:999px; cursor:pointer; font-size:14px; user-select:none}
-  .tab.active{background:var(--accent); color:#06250f; border-color:transparent; font-weight:700}
-  .container{padding:12px; max-width:1200px; margin:0 auto}
-  .grid{display:grid; gap:10px}
-  .grid.two{grid-template-columns:2fr 1fr}
-  .card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px}
-  label{font-size:12px; color:var(--muted); display:block; margin-bottom:6px}
-  input,select,textarea{width:100%; padding:10px 12px; background:var(--input); color:var(--text); border:1px solid var(--border); border-radius:10px; outline:none; font-size:14px}
-  textarea{min-height:72px; resize:vertical}
-  .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px}
-  .btns{display:flex; gap:8px; flex-wrap:wrap}
-  button{ background:#1f2937; color:#e5e7eb; border:1px solid var(--border); padding:10px 12px; border-radius:10px; font-size:14px; cursor:pointer; }
-  button.primary{background:var(--accent); color:#06250f; border-color:transparent; font-weight:700}
-  button.secondary{background:var(--accent2); color:#081326; border-color:transparent; font-weight:700}
-  button.warn{background:var(--warning); color:#261a05; border-color:transparent; font-weight:700}
-  button.danger{background:var(--danger); color:#2b0a0a; border-color:transparent; font-weight:700}
-  .table{width:100%; border-collapse:collapse; margin-top:8px}
-  .table th,.table td{padding:8px; border-bottom:1px solid var(--border); font-size:13px; text-align:right; vertical-align:top}
-  .chip{display:inline-block; padding:4px 8px; border-radius:999px; background:var(--chip); color:#e5e7eb; font-size:12px}
-  .status-New{background:#0b1220; color:#9ca3af}
-  .status-Confirmed{background:#0b3a1a; color:#a7f3d0}
-  .status-Ready{background:#3b2a05; color:#fde68a}
-  .status-Delivered{background:#03281f; color:#6ee7b7}
-  .status-Canceled{background:#2a0c0c; color:#fecaca}
-  .muted{color:var(--muted)} .small{font-size:12px} .hidden{display:none}
-  .statbar{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
-  @media(min-width:680px){ .statbar{grid-template-columns:repeat(4,1fr)} }
-  .stat{background:#0b1220; border:1px solid var(--border); padding:10px; border-radius:10px; font-size:13px}
-  .badge{background:#0b1220; border:1px solid var(--border); border-radius:999px; padding:2px 8px; font-size:11px; color:#cbd5e1}
-  #err{position:fixed; left:8px; right:8px; bottom:calc(8px + env(safe-area-inset-bottom)); padding:10px; background:#7f1d1d; color:#fecaca; border:1px solid #ef4444; border-radius:10px; display:none; z-index:3000}
-
-  /* Views */
-  .view{display:none}
-  .view.active{display:block}
-
-  /* Dock */
-  .dock{
-    position:fixed; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:2500;
-    display:flex; gap:8px; background:rgba(17,24,39,.95); border:1px solid var(--border);
-    padding:6px; border-radius:999px; backdrop-filter:blur(6px);
-  }
-  .dock button{
-    border-radius:999px; padding:10px 14px; font-size:16px; border:1px solid var(--border);
-    background:#0b1220; color:#cbd5e1;
-  }
-  .dock button.active{ background:var(--accent); color:#06250f; border-color:transparent; font-weight:700 }
-
-  /* Phones: force fixed header */
-  @media (max-width: 820px){
-    header{ position:fixed; top:0; left:0; right:0; }
-    body{ padding-top: var(--header-h); }
-  }
+:root{
+  --bg:#0f172a; --card:#111827; --text:#e5e7eb; --mut:#9ca3af;
+  --border:#1f2937; --chip:#0b1220; --accent:#22c55e; --danger:#ef4444;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text)}
+header{position:fixed;top:0;left:0;right:0;z-index:1000;background:#111827;border-bottom:1px solid var(--border);padding:10px 12px}
+h1{margin:0 0 6px 0;font-size:18px}
+.sub{color:var(--mut);font-size:12px}
+.nav{display:flex;gap:8px;flex-wrap:wrap}
+.tab{border:1px solid var(--border);background:#0b1220;color:#cbd5e1;padding:8px 12px;border-radius:999px;cursor:pointer}
+.tab.active{background:var(--accent);color:#052a13;border-color:transparent;font-weight:700}
+.container{max-width:1100px;margin:0 auto;padding:100px 12px 80px}
+.view{display:none}
+.view.active{display:block}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin:10px 0}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+input,select,textarea{width:100%;padding:10px;background:#0b1220;border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px}
+button{border:1px solid var(--border);background:#0b1220;color:#e5e7eb;border-radius:10px;padding:10px 12px;cursor:pointer}
+button.primary{background:var(--accent);color:#06250f;border-color:transparent;font-weight:700}
+button.danger{background:var(--danger);color:#2b0a0a;border-color:transparent;font-weight:700}
+.table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid var(--border);padding:8px;font-size:13px;text-align:right;vertical-align:top}
+.badge{display:inline-block;background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:#cbd5e1;font-size:11px}
+.dock{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:1001;display:flex;gap:8px;background:rgba(17,24,39,.95);border:1px solid var(--border);padding:6px;border-radius:999px}
+.dock button{border-radius:999px;padding:10px 14px}
+.dock button.active{background:var(--accent);color:#052a13;border-color:transparent;font-weight:700}
+.small{font-size:12px;color:var(--mut)}
 </style>
 </head>
 <body>
-<header id="hdr">
-  <h1>📋 إدارة حجوزات التين — v6.4.2 (Edit Fix)</h1>
-  <div class="sub">إصلاح: التعديل لا ينشئ طلبًا جديدًا + جميع تحسينات الجوال السابقة</div>
+<header>
+  <h1>📋 FIG Orders — Fresh Start v1.0</h1>
+  <div class="sub">بوابة الإحصاءات (رئيسية) • بوابة الطلبات • بوابة الأصناف</div>
   <div class="nav">
     <button class="tab" data-view="stats" type="button">📊 الإحصاءات</button>
     <button class="tab" data-view="orders" type="button">🧾 الطلبات</button>
@@ -84,342 +47,304 @@
   </div>
 </header>
 
-<div id="err"></div>
-
-<div class="dock" id="dock">
+<div class="dock">
   <button data-view="stats" type="button">📊</button>
   <button data-view="orders" type="button">🧾</button>
   <button data-view="catalog" type="button">🧺</button>
 </div>
 
-<!-- ===== Stats ===== -->
+<!-- Stats -->
 <section id="view-stats" class="container view active">
   <section class="card">
-    <h2 style="margin:0 0 10px 0;">📈 ملخص سريع</h2>
-    <div class="statbar">
-      <div class="stat"><div class="muted small">الطلبات الحالية</div><div id="s_orders" style="font-weight:700;font-size:18px">0</div></div>
-      <div class="stat"><div class="muted small">إجمالي الشتلات (الحالية)</div><div id="s_qty" style="font-weight:700;font-size:18px">0</div></div>
-      <div class="stat"><div class="muted small">المتوقع (الحالية)</div><div id="s_sum" style="font-weight:700;font-size:18px">0</div></div>
-      <div class="stat"><div class="muted small">قيد المعالجة (مؤكد/جاهز)</div><div id="s_pipe" style="font-weight:700;font-size:18px">0</div></div>
+    <h2 style="margin:0 0 8px 0;">📈 ملخص</h2>
+    <div class="row3">
+      <div class="card"><div class="small">عدد الطلبات</div><div id="st_orders" style="font-weight:700;font-size:18px">0</div></div>
+      <div class="card"><div class="small">إجمالي الشتلات</div><div id="st_qty" style="font-weight:700;font-size:18px">0</div></div>
+      <div class="card"><div class="small">القيمة الإجمالية</div><div id="st_sum" style="font-weight:700;font-size:18px">0</div></div>
     </div>
   </section>
 </section>
 
-<!-- ===== Orders ===== -->
+<!-- Orders -->
 <section id="view-orders" class="container view">
   <section class="card">
-    <h2 style="margin:0 0 10px 0;">🧾 الطلبات</h2>
-    <div class="grid two">
+    <h2 style="margin:0 0 8px 0;">🧾 الطلبات</h2>
+    <div class="row2">
       <section class="card">
-        <h3 style="margin:0 0 8px 0;">➕ طلب جديد / تعديل</h3>
-        <div class="grid">
-          <div class="row">
-            <div><label>الاسم</label><input id="name" placeholder="اسم الزبون" /></div>
-            <div><label>الهاتف</label><input id="phone" placeholder="0555..." inputmode="tel"/></div>
+        <h3 style="margin:0 0 6px 0;">طلب جديد / تعديل</h3>
+        <div class="row2">
+          <div><label class="small">الاسم</label><input id="f_name" placeholder="اسم الزبون"></div>
+          <div><label class="small">الهاتف</label><input id="f_phone" placeholder="05.."></div>
+        </div>
+        <div class="row2">
+          <div><label class="small">الحالة</label>
+            <select id="f_status">
+              <option value="New">جديد</option>
+              <option value="Confirmed">مؤكد</option>
+              <option value="Ready">جاهز</option>
+              <option value="Delivered">مُسلّم</option>
+              <option value="Canceled">ملغى</option>
+            </select>
           </div>
+          <div><label class="small">التاريخ</label><input id="f_date" type="date"></div>
+        </div>
+        <div class="row2">
+          <div><label class="small">التوصيل</label>
+            <select id="f_delivery">
+              <option value="Office">مكتب ياليدين</option>
+              <option value="Home">للعنوان</option>
+              <option value="Pickup">استلام يدوي</option>
+            </select>
+          </div>
+          <div><label class="small">المدينة</label><input id="f_city" placeholder="خنشلة.."></div>
+        </div>
+        <div><label class="small">ملاحظات</label><textarea id="f_notes" placeholder="..."></textarea></div>
 
-          <div class="row">
-            <div><label>الحالة</label>
-              <select id="status">
-                <option value="New">جديد</option>
-                <option value="Confirmed">مؤكد</option>
-                <option value="Ready">جاهز</option>
-                <option value="Delivered">مُسلّم</option>
-                <option value="Canceled">ملغى</option>
-              </select>
+        <div class="card" style="background:#0b1220">
+          <h4 style="margin:0 0 6px 0;">أصناف الطلب</h4>
+          <div class="row3">
+            <div>
+              <label class="small">الصنف (من القائمة)</label>
+              <select id="i_sel"></select>
+              <div class="small">حرّر القائمة من بوابة "الأصناف"</div>
             </div>
-            <div><label>التاريخ</label><input id="date" type="date"/></div>
+            <div><label class="small">العدد</label><input id="i_qty" type="number" min="1" value="1"></div>
+            <div><label class="small">سعر/وحدة</label><input id="i_ppu" type="number" min="0" step="0.01" placeholder="دج"></div>
           </div>
+          <div style="margin-top:8px"><button id="i_add" type="button">إضافة الصنف</button></div>
+          <table class="table" id="it_tbl">
+            <thead><tr><th>#</th><th>الصنف</th><th>العدد</th><th>سعر/وحدة</th><th>المجموع</th><th>—</th></tr></thead>
+            <tbody></tbody>
+          </table>
+          <div class="small" id="it_hint">أضف صنفًا واحدًا أو أكثر قبل الحفظ.</div>
+        </div>
 
-          <div class="row">
-            <div><label>التوصيل</label>
-              <select id="delivery">
-                <option value="Office">مكتب ياليدين</option>
-                <option value="Home">للعنوان</option>
-                <option value="Pickup">استلام يدوي</option>
-              </select>
-            </div>
-            <div><label>الولاية / المدينة</label><input id="city" placeholder="مثال: خنشلة"/></div>
-          </div>
-
-          <div><label>العنوان</label><input id="address" placeholder="العنوان الكامل (اختياري)"/></div>
-          <div><label>ملاحظات</label><textarea id="notes" placeholder="تفاصيل إضافية..."></textarea></div>
-
-          <div class="card" style="background:#0b1220; border-color:#1f2937">
-            <h3 style="margin:0 0 8px 0;">🧺 أصناف الطلب</h3>
-            <div class="row3">
-              <div>
-                <label>الصنف (من القائمة)</label>
-                <select id="i_variety_sel"></select>
-                <div class="small muted">حرّر قائمة الأصناف من بوابة "الأصناف".</div>
-              </div>
-              <div><label>العدد</label><input id="i_qty" type="number" min="1" value="1"/></div>
-              <div><label>سعر الوحدة</label><input id="i_ppu" type="number" min="0" step="0.01" placeholder="دينار"/></div>
-            </div>
-            <div class="btns" style="margin-top:8px">
-              <button class="secondary" id="addItemBtn" type="button">إضافة الصنف</button>
-            </div>
-            <table class="table" id="itemsTbl">
-              <thead><tr><th>#</th><th>الصنف</th><th>العدد</th><th>سعر/وحدة</th><th>المجموع</th><th>—</th></tr></thead>
-              <tbody></tbody>
-            </table>
-            <div class="small muted" id="itemsHint">أضف صنفًا واحدًا أو أكثر قبل حفظ الطلب.</div>
-          </div>
-
-          <div class="btns">
-            <button class="primary" id="saveBtn" type="button">حفظ الطلب</button>
-            <button class="secondary" id="newBtn" type="button">تفريغ النموذج</button>
-            <button class="warn hidden" id="dupBtn" type="button">تكرار الطلب</button>
-            <button class="danger hidden" id="delBtn" type="button">حذف الطلب</button>
-          </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="primary" id="save" type="button">حفظ</button>
+          <button id="new" type="button">تفريغ النموذج</button>
+          <button class="danger" id="del" type="button" style="display:none">حذف</button>
         </div>
       </section>
 
       <section class="card">
-        <h3 style="margin:0 0 8px 0;">🔎 بحث وأدوات</h3>
-        <div class="grid">
-          <input id="search" placeholder="بحث بالاسم / الهاتف / الصنف..." />
-          <select id="filterStatus">
-            <option value="">كل الحالات</option>
-            <option value="New">جديد</option>
-            <option value="Confirmed">مؤكد</option>
-            <option value="Ready">جاهز</option>
-            <option value="Delivered">مُسلّم</option>
-            <option value="Canceled">ملغى</option>
-          </select>
-          <select id="filterVariety"><option value="">تصفية حسب الصنف</option></select>
-        </div>
-        <table class="table" id="ordersTbl">
-          <thead>
-            <tr>
-              <th>#</th><th>الاسم</th><th>الهاتف</th><th>الأصناف</th><th>إجمالي العدد</th><th>الحالة</th><th>التوصيل</th><th>المدينة</th><th>الإجمالي</th><th>—</th>
-            </tr>
-          </thead>
+        <h3 style="margin:0 0 6px 0;">قائمة الطلبات</h3>
+        <input id="q" placeholder="بحث بالاسم / الهاتف / الصنف...">
+        <table class="table" id="tbl">
+          <thead><tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>الأصناف</th><th>العدد</th><th>الإجمالي</th><th>—</th></tr></thead>
           <tbody></tbody>
         </table>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+          <button id="print" type="button">طباعة لائحة التحضير</button>
+          <button class="danger" id="clear" type="button">تفريغ الطلبات</button>
+        </div>
       </section>
     </div>
   </section>
 </section>
 
-<!-- ===== Catalog ===== -->
+<!-- Catalog -->
 <section id="view-catalog" class="container view">
   <section class="card">
-    <h2 style="margin:0 0 10px 0;">🧺 إدارة قائمة الأصناف</h2>
-    <div class="row">
-      <div><label>اسم الصنف</label><input id="c_name" placeholder="مثال: Black Madeira"/></div>
-      <div><label>سعر افتراضي</label><input id="c_ppu" type="number" min="0" step="0.01" placeholder="دينار"/></div>
+    <h2 style="margin:0 0 8px 0;">🧺 الأصناف</h2>
+    <div class="row2">
+      <div><label class="small">اسم الصنف</label><input id="c_name" placeholder="Black Madeira"></div>
+      <div><label class="small">سعر افتراضي</label><input id="c_ppu" type="number" min="0" step="0.01" placeholder="دج"></div>
     </div>
-    <div class="btns" style="margin-top:8px">
-      <button id="c_add" class="secondary" type="button">إضافة للصنف</button>
-      <button id="c_clear" class="danger" type="button">تفريغ القائمة</button>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button id="c_add" type="button">إضافة</button>
+      <button class="danger" id="c_clear" type="button">تفريغ الأصناف</button>
     </div>
-    <table class="table" id="catTbl">
+    <table class="table" id="c_tbl">
       <thead><tr><th>#</th><th>الصنف</th><th>سعر افتراضي</th><th>—</th></tr></thead>
       <tbody></tbody>
     </table>
-    <div class="small muted">هذه القائمة تُستخدم في بوابة “الطلبات”.</div>
   </section>
 </section>
 
 <script>
 (function(){
-  /* ===== Helpers ===== */
-  function $(s){ return document.querySelector(s); }
-  function $$(s){ return Array.prototype.slice.call(document.querySelectorAll(s)); }
-  function fmt(n){ return (n||0).toLocaleString('ar-DZ'); }
-  var STATUS_CLASSES={"New":"status-New","Confirmed":"status-Confirmed","Ready":"status-Ready","Delivered":"status-Delivered","Canceled":"status-Canceled"};
-  function uid(){ return 'o_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4); }
-  function idItem(){ return 'it_'+Math.random().toString(36).slice(2,8); }
-  function idCat(){ return 'cv_'+Math.random().toString(36).slice(2,8); }
-  function escapeHTML(str){ return (str||'').toString().replace(/[&<>\"']/g, function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m];}); }
-  function statusLabel(s){ var m={'New':'جديد','Confirmed':'مؤكد','Ready':'جاهز','Delivered':'مُسلّم','Canceled':'ملغى'}; return m[s]||s; }
-  function deliveryLabel(d){ var m={'Office':'مكتب ياليدين','Home':'للعنوان','Pickup':'استلام يدوي'}; return m[d]||d; }
+  // ===== Basic helpers =====
+  function $(s){return document.querySelector(s)}
+  function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
+  function fmt(n){return (n||0).toLocaleString('ar-DZ')}
+  function uid(){return 'o_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
+  function idCat(){return 'cv_'+Math.random().toString(36).slice(2,8)}
+  function idItem(){return 'it_'+Math.random().toString(36).slice(2,8)}
 
-  var K_ORD='fig_orders_v6'; var K_CAT='fig_varieties_v1';
-
-  function load(key){ try{return JSON.parse(localStorage.getItem(key))||[];}catch(e){return [];} }
-  function save(key,v){ try{localStorage.setItem(key,JSON.stringify(v));}catch(e){ alert('تعذر الحفظ'); } }
-
-  /* ===== State ===== */
-  var catalog = load(K_CAT);
-  var orders  = load(K_ORD);
-  var editingId = null;        // <-- مهم: يحدد أننا نعدّل طلبًا موجودًا
-  var currentItems = [];       // عناصر الطلب الجاري تحريره
-
-  /* ===== Tabs routing ===== */
+  // ===== Tabs routing (simple & robust)
   function switchView(v){
-    var ids=["stats","orders","catalog"];
-    if(ids.indexOf(v)===-1) v="stats";
-    $$('.tab').forEach(function(t){ t.classList.toggle('active', t.getAttribute('data-view')===v); });
-    $$('.dock button').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-view')===v); });
-    $('#view-stats').classList.toggle('active', v==='stats');
-    $('#view-orders').classList.toggle('active', v==='orders');
-    $('#view-catalog').classList.toggle('active', v==='catalog');
-    if(location.hash!=='#'+v){ location.hash='#'+v; }
-    window.scrollTo(0,0);
+    var ids=['stats','orders','catalog']
+    if(ids.indexOf(v)===-1) v='stats'
+    $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===v))
+    $$('.dock button').forEach(b=>b.classList.toggle('active', b.dataset.view===v))
+    $('#view-stats').classList.toggle('active', v==='stats')
+    $('#view-orders').classList.toggle('active', v==='orders')
+    $('#view-catalog').classList.toggle('active', v==='catalog')
+    if(location.hash!=='#'+v) location.hash='#'+v
+    window.scrollTo(0,0)
   }
+  $$('.tab').forEach(t=>t.addEventListener('click', ()=>switchView(t.dataset.view)))
+  $$('.dock button').forEach(b=>b.addEventListener('click', ()=>switchView(b.dataset.view)))
+  window.addEventListener('hashchange', ()=>switchView((location.hash||'').replace('#','')||'stats'))
+  switchView((location.hash||'').replace('#','')||'stats')
 
-  /* ===== Catalog ===== */
-  function renderCat(){
-    var tbody=$('#catTbl tbody'); if(tbody) tbody.innerHTML='';
-    catalog.forEach(function(c,i){
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td class="small muted">'+(i+1)+'</td><td>'+escapeHTML(c.name||'')+'</td><td>'+fmt(c.ppu||0)+'</td>'+
-                   '<td><a href="#" data-act="cedit" data-id="'+c.id+'">تعديل</a> • <a href="#" data-act="cdel" data-id="'+c.id+'">حذف</a></td>';
-      tbody.appendChild(tr);
-    });
-    var sel=$('#i_variety_sel'); if(sel){ sel.innerHTML=''; catalog.forEach(function(c){ var op=document.createElement('option'); op.value=c.id; op.textContent=c.name; sel.appendChild(op); }); }
-  }
+  // ===== Storage keys =====
+  const K_CAT='fig_catalog_v1', K_ORD='fig_orders_v1'
 
-  /* ===== Items table ===== */
-  function renderItems(){
-    var tbody=$('#itemsTbl tbody'); if(!tbody) return; tbody.innerHTML='';
-    var total=0;
-    currentItems.forEach(function(it,i){
-      var sum=(it.qty||0)*(it.ppu||0); total+=sum;
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td class="small muted">'+(i+1)+'</td>'+
-                   '<td>'+escapeHTML(it.variety||'')+'</td>'+
-                   '<td>'+fmt(it.qty||0)+'</td>'+
-                   '<td>'+fmt(it.ppu||0)+'</td>'+
-                   '<td>'+fmt(Math.round(sum))+'</td>'+
-                   '<td><a href="#" data-act="edit" data-id="'+i+'">تعديل</a> • <a href="#" data-act="del" data-id="'+i+'">حذف</a></td>';
-      tbody.appendChild(tr);
-    });
-    var hint=$('#itemsHint'); if(hint) hint.textContent=currentItems.length?('إجمالي أصناف الطلب: '+currentItems.length+' | المجموع التقريبي: '+fmt(Math.round(total))+' دج'):'أضف صنفًا واحدًا أو أكثر قبل حفظ الطلب.';
-  }
+  function load(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]}}
+  function save(k,v){try{localStorage.setItem(k, JSON.stringify(v))}catch(e){alert('تعذر الحفظ')}}
 
-  /* ===== Orders list ===== */
-  function renderOrdersTable(){
-    var tbody=$('#ordersTbl tbody'); if(tbody) tbody.innerHTML='';
-    orders.forEach(function(o,i){
-      var items=o.items||[], sum=0, qty=0;
-      items.forEach(function(it){ sum+=((it.qty||0)*(it.ppu||0)); qty+=(it.qty||0); });
-      var names=items.map(function(it){return it.variety}).filter(Boolean);
-      var show=names.length<=2? names.join('، ') : names[0]+'، '+names[1]+' +'+(names.length-2);
-      var tr=document.createElement('tr');
-      tr.innerHTML='<td class="small muted">'+(i+1)+'</td><td>'+escapeHTML(o.name||'')+'</td><td class="small">'+escapeHTML(o.phone||'')+'</td>'+
-                   '<td>'+escapeHTML(show||'-')+'</td><td>'+fmt(qty)+'</td>'+
-                   '<td>'+escapeHTML(statusLabel(o.status))+'</td><td>'+escapeHTML(deliveryLabel(o.delivery))+'</td>'+
-                   '<td class="small">'+escapeHTML(o.city||'')+'</td><td>'+fmt(Math.round(sum))+'</td>'+
-                   '<td><a href="#" data-id="'+o.id+'">فتح</a></td>';
-      tbody.appendChild(tr);
-    });
+  // ===== Catalog =====
+  let catalog = load(K_CAT)
+  function renderCatalog(){
+    const tb=$('#c_tbl tbody'); tb.innerHTML=''
+    catalog.forEach((c,i)=>{
+      const tr=document.createElement('tr')
+      tr.innerHTML = `<td class="small">${i+1}</td><td>${c.name||''}</td><td>${fmt(c.ppu||0)}</td>
+      <td><a href="#" data-act="e" data-id="${c.id}">تعديل</a> • <a href="#" data-act="d" data-id="${c.id}">حذف</a></td>`
+      tb.appendChild(tr)
+    })
+    // fill select in Orders
+    const sel = $('#i_sel'); sel.innerHTML=''
+    catalog.forEach(c=>{ const op=document.createElement('option'); op.value=c.id; op.textContent=c.name; sel.appendChild(op)})
   }
+  $('#c_add').addEventListener('click', ()=>{
+    const name=($('#c_name').value||'').trim(); const ppu=parseFloat($('#c_ppu').value||'0')||0
+    if(!name){alert('اسم الصنف مطلوب');return}
+    catalog.push({id:idCat(), name, ppu}); save(K_CAT,catalog); renderCatalog(); $('#c_name').value=''; $('#c_ppu').value=''
+  })
+  $('#c_clear').addEventListener('click', ()=>{ if(!confirm('تفريغ كل الأصناف؟'))return; catalog=[]; save(K_CAT,catalog); renderCatalog()})
+  $('#c_tbl').addEventListener('click', (e)=>{
+    const a=e.target.closest && e.target.closest('a[data-act]'); if(!a) return; e.preventDefault()
+    const id=a.getAttribute('data-id'); const ix=catalog.findIndex(c=>c.id===id); if(ix<0) return
+    if(a.dataset.act==='d'){ if(confirm('حذف الصنف؟')){ catalog.splice(ix,1); save(K_CAT,catalog); renderCatalog()} }
+    else{ const n=prompt('اسم الصنف', catalog[ix].name); if(n===null) return; const p=parseFloat(prompt('سعر افتراضي', catalog[ix].ppu)||'0')||0; catalog[ix].name=n.trim(); catalog[ix].ppu=p; save(K_CAT,catalog); renderCatalog() }
+  })
 
-  /* ===== Form helpers ===== */
-  function setFormData(o){
-    $('#name').value=o.name||''; $('#phone').value=o.phone||''; $('#status').value=o.status||'New';
-    $('#delivery').value=o.delivery||'Office'; $('#date').value=o.date||''; $('#city').value=o.city||'';
-    $('#address').value=o.address||''; $('#notes').value=o.notes||'';
-    currentItems=o.items?o.items.slice():[]; renderItems();
-    // إظهار أزرار الحذف/التكرار أثناء التعديل
-    if(editingId){ $('#delBtn').classList.remove('hidden'); $('#dupBtn').classList.remove('hidden'); }
-    else { $('#delBtn').classList.add('hidden'); $('#dupBtn').classList.add('hidden'); }
+  // ===== Orders =====
+  let orders = load(K_ORD)
+  let editingId = null
+  let items = []
+
+  function setForm(o){
+    $('#f_name').value=o.name||''; $('#f_phone').value=o.phone||''; $('#f_status').value=o.status||'New'
+    $('#f_date').value=o.date||new Date().toISOString().slice(0,10); $('#f_delivery').value=o.delivery||'Office'
+    $('#f_city').value=o.city||''; $('#f_notes').value=o.notes||''
+    items = o.items? o.items.slice():[]; renderItems()
+    $('#del').style.display = editingId? 'inline-block':'none'
   }
-  function getFormData(){
-    // لو نعدّل: استخدم نفس الـ id واحتفظ بـ createdAt
-    var existing = editingId ? orders.find(function(x){return x.id===editingId}) : null;
+  function getForm(){
+    const existing = editingId ? orders.find(x=>x.id===editingId) : null
     return {
       id: editingId || uid(),
-      name:($('#name').value||'').trim(),
-      phone:($('#phone').value||'').trim(),
-      status:($('#status').value)||'New',
-      delivery:($('#delivery').value)||'Office',
-      date:($('#date').value)|| new Date().toISOString().slice(0,10),
-      city:($('#city').value||'').trim(),
-      address:($('#address').value||'').trim(),
-      notes:($('#notes').value||'').trim(),
-      items: currentItems.slice(),
+      name: ($('#f_name').value||'').trim(),
+      phone: ($('#f_phone').value||'').trim(),
+      status: $('#f_status').value||'New',
+      date: $('#f_date').value || new Date().toISOString().slice(0,10),
+      delivery: $('#f_delivery').value||'Office',
+      city: ($('#f_city').value||'').trim(),
+      notes: ($('#f_notes').value||'').trim(),
+      items: items.slice(),
       createdAt: existing && existing.createdAt ? existing.createdAt : Date.now(),
       updatedAt: Date.now()
-    };
+    }
   }
-  function clearForm(){ editingId=null; setFormData({items:[]}); $('#delBtn').classList.add('hidden'); $('#dupBtn').classList.add('hidden'); }
+  function renderItems(){
+    const tb=$('#it_tbl tbody'); tb.innerHTML=''; let total=0
+    items.forEach((it,i)=>{
+      const sum=(it.qty||0)*(it.ppu||0); total+=sum
+      const tr=document.createElement('tr')
+      tr.innerHTML = `<td class="small">${i+1}</td><td>${it.variety}</td><td>${fmt(it.qty)}</td><td>${fmt(it.ppu)}</td><td>${fmt(Math.round(sum))}</td>
+      <td><a href="#" data-act="e" data-i="${i}">تعديل</a> • <a href="#" data-act="d" data-i="${i}">حذف</a></td>`
+      tb.appendChild(tr)
+    })
+    $('#it_hint').textContent = items.length? `إجمالي البنود: ${items.length} | المجموع التقريبي: ${fmt(Math.round(total))} دج` : 'أضف صنفًا واحدًا أو أكثر قبل الحفظ.'
+  }
+  $('#i_sel').addEventListener('change', ()=>{
+    const cv=catalog.find(c=>c.id===$('#i_sel').value); if(cv) $('#i_ppu').value = cv.ppu || 0
+  })
+  $('#i_add').addEventListener('click', ()=>{
+    const cv=catalog.find(c=>c.id===$('#i_sel').value); if(!cv){alert('اختر صنفًا');return}
+    const q=parseInt($('#i_qty').value||'0',10)||0; const p=parseFloat($('#i_ppu').value||'0')||0
+    if(q<=0){alert('عدد غير صالح');return}
+    items.push({id:idItem(), variety:cv.name, qty:q, ppu:p}); $('#i_qty').value=1; $('#i_ppu').value=cv.ppu||''; renderItems()
+  })
+  $('#it_tbl').addEventListener('click', (e)=>{
+    const a=e.target.closest && e.target.closest('a[data-act]'); if(!a) return; e.preventDefault()
+    const i=parseInt(a.getAttribute('data-i')||'-1',10); if(i<0) return
+    if(a.dataset.act==='d'){ if(confirm('حذف البند؟')){ items.splice(i,1); renderItems() } }
+    else{ const q=parseInt(prompt('العدد', items[i].qty)||'0',10)||0; const p=parseFloat(prompt('سعر/وحدة', items[i].ppu)||'0')||0; if(q<=0){alert('قيمة غير صالحة');return} items[i].qty=q; items[i].ppu=p; renderItems() }
+  })
 
-  /* ===== Init bindings ===== */
-  function bind(){
-    // Tabs
-    $$('.tab').forEach(function(t){ t.addEventListener('click', function(){ switchView(this.getAttribute('data-view')); }); });
-    $$('.dock button').forEach(function(b){ b.addEventListener('click', function(){ switchView(this.getAttribute('data-view')); }); });
-    window.addEventListener('hashchange', function(){ var v=(location.hash||'').replace('#',''); switchView(v); });
+  $('#save').addEventListener('click', ()=>{
+    const o=getForm(); if(!o.name){alert('الاسم مطلوب');return} if(!o.items.length){alert('أضف صنفًا واحدًا');return}
+    const ix = orders.findIndex(x=>x.id===o.id)
+    if(ix>=0){ orders[ix]=o } else { orders.push(o) }
+    save(K_ORD, orders); renderOrders(); setForm({items:[]}); editingId=null; updateStats(); alert(ix>=0? 'تم تحديث الطلب' : 'تم حفظ الطلب')
+  })
+  $('#new').addEventListener('click', ()=>{ editingId=null; setForm({items:[]}) })
+  $('#del').addEventListener('click', ()=>{
+    if(!editingId) return; if(!confirm('حذف الطلب نهائيًا؟'))return
+    orders = orders.filter(x=>x.id!==editingId); save(K_ORD,orders); renderOrders(); editingId=null; setForm({items:[]}); updateStats()
+  })
 
-    // Catalog
-    $('#c_add').addEventListener('click', function(){
-      var name=($('#c_name').value||'').trim(); var ppu=parseFloat($('#c_ppu').value||'0')||0;
-      if(!name){ alert('اسم الصنف مطلوب'); return; }
-      catalog.push({id:idCat(), name:name, ppu:ppu}); save(K_CAT,catalog); renderCat();
-      $('#c_name').value=''; $('#c_ppu').value='';
-    });
-    $('#c_clear').addEventListener('click', function(){ if(!confirm('تفريغ كل الأصناف؟')) return; catalog=[]; save(K_CAT,catalog); renderCat(); });
-    $('#catTbl').addEventListener('click', function(e){
-      var a=e.target.closest && e.target.closest('a[data-act]'); if(!a) return; e.preventDefault();
-      var act=a.getAttribute('data-act'), id=a.getAttribute('data-id');
-      var ix=catalog.findIndex(function(c){return c.id===id}); if(ix<0) return;
-      if(act==='cdel'){ if(confirm('حذف هذا الصنف؟')){ catalog.splice(ix,1); save(K_CAT,catalog); renderCat(); } }
-      if(act==='cedit'){ var c=catalog[ix]; var n=prompt('اسم الصنف', c.name); if(n===null) return; var p=prompt('سعر افتراضي', c.ppu); if(p===null) return; p=parseFloat(p||'0')||0; if(!n.trim()){ alert('اسم غير صالح'); return; } catalog[ix]={id:c.id, name:n.trim(), ppu:p}; save(K_CAT,catalog); renderCat(); }
-    });
+  function renderOrders(){
+    const q=($('#q').value||'').trim().toLowerCase()
+    const tb=$('#tbl tbody'); tb.innerHTML=''
+    const filtered = orders.filter(o=> !q || (o.name&&o.name.toLowerCase().includes(q)) || (o.phone&&o.phone.toLowerCase().includes(q)) || (o.items||[]).some(it=>it.variety.toLowerCase().includes(q)) )
+      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))
+    filtered.forEach((o,i)=>{
+      const sum=(o.items||[]).reduce((s,it)=>s+(it.qty||0)*(it.ppu||0),0)
+      const qty=(o.items||[]).reduce((s,it)=>s+(it.qty||0),0)
+      const names=(o.items||[]).map(it=>it.variety).join('، ')
+      const tr=document.createElement('tr')
+      tr.innerHTML = `<td class="small">${i+1}</td><td>${o.name}</td><td class="small">${o.phone}</td><td>${names}</td><td>${fmt(qty)}</td><td>${fmt(Math.round(sum))}</td>
+      <td><a href="#" data-id="${o.id}">فتح</a></td>`
+      tb.appendChild(tr)
+    })
+  }
+  $('#tbl').addEventListener('click', (e)=>{
+    const a=e.target.closest && e.target.closest('a[data-id]'); if(!a) return; e.preventDefault()
+    const id=a.getAttribute('data-id'); const o=orders.find(x=>x.id===id); if(!o) return
+    editingId=id; setForm(o); switchView('orders'); window.scrollTo(0,0)
+  })
+  $('#q').addEventListener('input', renderOrders)
 
-    // Items
-    $('#i_variety_sel').addEventListener('change', function(){ var cv=catalog.find(function(x){return x.id===document.getElementById('i_variety_sel').value}); if(cv){ $('#i_ppu').value=cv.ppu||0; } });
-    $('#addItemBtn').addEventListener('click', function(){
-      var sel=$('#i_variety_sel'); var cid=sel? sel.value:''; var cv=catalog.find(function(x){return x.id===cid});
-      if(!cv){ alert('اختر صنفًا من القائمة'); return; }
-      var q=parseInt($('#i_qty').value||'0',10)||0; var p=parseFloat($('#i_ppu').value||'0')||0;
-      if(q<=0){ alert('العدد غير صالح'); return; }
-      currentItems.push({id:idItem(), variety:cv.name, qty:q, ppu:p});
-      $('#i_qty').value=1; $('#i_ppu').value=cv.ppu||''; renderItems();
-    });
-    $('#itemsTbl').addEventListener('click', function(e){
-      var a=e.target.closest && e.target.closest('a[data-act]'); if(!a) return; e.preventDefault();
-      var act=a.getAttribute('data-act'), idx=parseInt(a.getAttribute('data-id')||'-1',10); if(idx<0) return;
-      var it=currentItems[idx];
-      if(act==='del'){ if(confirm('حذف هذا الصنف؟')){ currentItems.splice(idx,1); renderItems(); } }
-      if(act==='edit'){ var q=prompt('العدد', it.qty); if(q===null) return; var p=prompt('سعر الوحدة', it.ppu); if(p===null) return; q=parseInt(q||'0',10)||0; p=parseFloat(p||'0')||0; if(q<=0){ alert('قيمة غير صالحة'); return; } currentItems[idx]={id:it.id, variety:it.variety, qty:q, ppu:p}; renderItems(); }
-    });
+  $('#clear').addEventListener('click', ()=>{ if(!confirm('تفريغ كل الطلبات؟'))return; orders=[]; save(K_ORD,orders); renderOrders(); updateStats() })
 
-    // Save / New
-    $('#saveBtn').addEventListener('click', function(){
-      var o=getFormData(); if(!o.name){ alert('الاسم مطلوب'); return; } if(!o.items||!o.items.length){ alert('أضف صنفًا واحدًا على الأقل'); return; }
-      var ix = orders.findIndex(function(x){ return x.id===o.id; });
-      if(ix>=0){ orders[ix]=o; } else { orders.push(o); }
-      save(K_ORD,orders); renderOrdersTable(); clearForm(); alert(ix>=0? 'تم تحديث الطلب.' : 'تم حفظ الطلب.');
-    });
-    $('#newBtn').addEventListener('click', function(){ clearForm(); });
+  // Print list grouped per customer
+  $('#print').addEventListener('click', ()=>{
+    const blocks = orders.map((o,i)=>{
+      const items = (o.items||[]).map(it=>{
+        const s=(it.qty||0)*(it.ppu||0)
+        return `   • ${it.variety} × ${it.qty} — سعر/وحدة: ${it.ppu} — المجموع: ${Math.round(s)} دج`
+      }).join('\n')
+      const total = (o.items||[]).reduce((s,it)=>s+(it.qty||0)*(it.ppu||0),0)
+      const qty = (o.items||[]).reduce((s,it)=>s+(it.qty||0),0)
+      return `${i+1}) ${o.name||''} – ${o.phone||''} – ${o.city||''}\n${items}\n   الإجمالي الكلي: ${Math.round(total)} دج   |   عدد الشتلات: ${qty}`
+    })
+    const w=window.open('','_blank')
+    if(!w){alert('يمنع المتصفح فتح النافذة');return}
+    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>لائحة التحضير</title>
+    <style>body{font-family:system-ui;padding:20px} h2{margin:0 0 12px 0} pre{white-space:pre-wrap;line-height:1.7}</style>
+    <h2>🧾 لائحة التحضير (${orders.length} طلب)</h2><pre>${blocks.join('\n\n')}</pre><script>window.print()</script>`)
+    w.document.close()
+  })
 
-    // Open row for edit
-    $('#ordersTbl').addEventListener('click', function(e){
-      var a=e.target.closest && e.target.closest('a[data-id]'); if(!a) return; e.preventDefault();
-      var id=a.getAttribute('data-id'); var o=orders.find(function(x){return x.id===id}); if(!o) return;
-      editingId = id; setFormData(o); switchView('orders');
-    });
-
-    // Duplicate & delete
-    $('#dupBtn').addEventListener('click', function(){
-      if(!editingId) return; var o=orders.find(function(x){return x.id===editingId}); if(!o) return;
-      var copy=JSON.parse(JSON.stringify(o)); copy.id=uid(); copy.status='New'; copy.createdAt=Date.now(); copy.updatedAt=Date.now(); orders.push(copy);
-      save(K_ORD,orders); renderOrdersTable(); alert('تم تكرار الطلب كطلب جديد.');
-    });
-    $('#delBtn').addEventListener('click', function(){
-      if(!editingId) return; if(!confirm('حذف هذا الطلب نهائيًا؟')) return;
-      orders = orders.filter(function(x){ return x.id!==editingId; }); save(K_ORD,orders); renderOrdersTable(); clearForm();
-    });
-
-    // Filters
-    $('#search').addEventListener('input', renderOrdersTable);
-    $('#filterStatus').addEventListener('input', renderOrdersTable);
-    $('#filterVariety').addEventListener('input', renderOrdersTable);
+  // ===== Stats =====
+  function updateStats(){
+    const totalOrders = orders.length
+    const totalQty = orders.reduce((s,o)=>s+(o.items||[]).reduce((a,it)=>a+(it.qty||0),0),0)
+    const totalSum = orders.reduce((s,o)=>s+(o.items||[]).reduce((a,it)=>a+(it.qty||0)*(it.ppu||0),0),0)
+    $('#st_orders').textContent = fmt(totalOrders)
+    $('#st_qty').textContent    = fmt(totalQty)
+    $('#st_sum').textContent    = fmt(Math.round(totalSum))
   }
 
-  function init(){
-    renderCat();
-    renderOrdersTable();
-    bind();
-    var initial=(location.hash||'').replace('#','') || 'orders';
-    switchView(initial);
-  }
-  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded', init); } else { init(); }
+  // ===== Init =====
+  // Default date
+  $('#f_date').value = new Date().toISOString().slice(0,10)
+  renderCatalog(); renderOrders(); updateStats(); setForm({items:[]})
 })();
 </script>
 </body>
