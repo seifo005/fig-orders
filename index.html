@@ -1,350 +1,491 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>FIG Orders — Fresh Start v1.0</title>
-<style>
-:root{
-  --bg:#0f172a; --card:#111827; --text:#e5e7eb; --mut:#9ca3af;
-  --border:#1f2937; --chip:#0b1220; --accent:#22c55e; --danger:#ef4444;
-}
-*{box-sizing:border-box}
-body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:var(--text)}
-header{position:fixed;top:0;left:0;right:0;z-index:1000;background:#111827;border-bottom:1px solid var(--border);padding:10px 12px}
-h1{margin:0 0 6px 0;font-size:18px}
-.sub{color:var(--mut);font-size:12px}
-.nav{display:flex;gap:8px;flex-wrap:wrap}
-.tab{border:1px solid var(--border);background:#0b1220;color:#cbd5e1;padding:8px 12px;border-radius:999px;cursor:pointer}
-.tab.active{background:var(--accent);color:#052a13;border-color:transparent;font-weight:700}
-.container{max-width:1100px;margin:0 auto;padding:100px 12px 80px}
-.view{display:none}
-.view.active{display:block}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin:10px 0}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-input,select,textarea{width:100%;padding:10px;background:#0b1220;border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px}
-button{border:1px solid var(--border);background:#0b1220;color:#e5e7eb;border-radius:10px;padding:10px 12px;cursor:pointer}
-button.primary{background:var(--accent);color:#06250f;border-color:transparent;font-weight:700}
-button.danger{background:var(--danger);color:#2b0a0a;border-color:transparent;font-weight:700}
-.table{width:100%;border-collapse:collapse}
-th,td{border-bottom:1px solid var(--border);padding:8px;font-size:13px;text-align:right;vertical-align:top}
-.badge{display:inline-block;background:var(--chip);border:1px solid var(--border);border-radius:999px;padding:2px 8px;color:#cbd5e1;font-size:11px}
-.dock{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:1001;display:flex;gap:8px;background:rgba(17,24,39,.95);border:1px solid var(--border);padding:6px;border-radius:999px}
-.dock button{border-radius:999px;padding:10px 14px}
-.dock button.active{background:var(--accent);color:#052a13;border-color:transparent;font-weight:700}
-.small{font-size:12px;color:var(--mut)}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>حجوزات أصناف التين — نسخة HTML</title>
+  <!-- Tailwind via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    html, body { height: 100%; background: #f3f4f6; }
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:16px; }
+    .pill { border-radius: 999px; padding: 2px 10px; border:1px solid #e5e7eb; }
+    .tableFixHead { overflow-y: auto; max-height: 60vh; }
+    .tableFixHead thead th { position: sticky; top: 0; background: #f9fafb; z-index: 1; }
+    input, select, textarea { border-radius: 10px; border: 1px solid #e5e7eb; padding: 8px 10px; }
+  </style>
 </head>
 <body>
-<header>
-  <h1>📋 FIG Orders — Fresh Start v1.0</h1>
-  <div class="sub">بوابة الإحصاءات (رئيسية) • بوابة الطلبات • بوابة الأصناف</div>
-  <div class="nav">
-    <button class="tab" data-view="stats" type="button">📊 الإحصاءات</button>
-    <button class="tab" data-view="orders" type="button">🧾 الطلبات</button>
-    <button class="tab" data-view="catalog" type="button">🧺 الأصناف</button>
-  </div>
-</header>
+  <div class="max-w-7xl mx-auto p-3 sm:p-6">
+    <header class="flex items-center justify-between gap-4 pb-4">
+      <h1 class="text-xl sm:text-2xl font-bold">📦 حجوزات أصناف التين — نسخة HTML (محلية)</h1>
+      <nav class="flex flex-wrap gap-2">
+        <button class="pill" data-tab="dashboard">لوحة البيانات</button>
+        <button class="pill" data-tab="new">إضافة حجز</button>
+        <button class="pill" data-tab="list">الحجوزات</button>
+        <button class="pill" data-tab="settings">الإعدادات</button>
+      </nav>
+    </header>
 
-<div class="dock">
-  <button data-view="stats" type="button">📊</button>
-  <button data-view="orders" type="button">🧾</button>
-  <button data-view="catalog" type="button">🧺</button>
-</div>
-
-<!-- Stats -->
-<section id="view-stats" class="container view active">
-  <section class="card">
-    <h2 style="margin:0 0 8px 0;">📈 ملخص</h2>
-    <div class="row3">
-      <div class="card"><div class="small">عدد الطلبات</div><div id="st_orders" style="font-weight:700;font-size:18px">0</div></div>
-      <div class="card"><div class="small">إجمالي الشتلات</div><div id="st_qty" style="font-weight:700;font-size:18px">0</div></div>
-      <div class="card"><div class="small">القيمة الإجمالية</div><div id="st_sum" style="font-weight:700;font-size:18px">0</div></div>
-    </div>
-  </section>
-</section>
-
-<!-- Orders -->
-<section id="view-orders" class="container view">
-  <section class="card">
-    <h2 style="margin:0 0 8px 0;">🧾 الطلبات</h2>
-    <div class="row2">
-      <section class="card">
-        <h3 style="margin:0 0 6px 0;">طلب جديد / تعديل</h3>
-        <div class="row2">
-          <div><label class="small">الاسم</label><input id="f_name" placeholder="اسم الزبون"></div>
-          <div><label class="small">الهاتف</label><input id="f_phone" placeholder="05.."></div>
+    <!-- Dashboard -->
+    <section id="tab-dashboard" class="grid gap-4">
+      <div id="chartsWarning" class="card bg-amber-50 border-amber-200 text-amber-900 hidden">
+        ⚠️ ملاحظة: الرسوم البيانية معطّلة لأن المتصفح لم يحمّل مكتبة Chart.js من الإنترنت. سيعمل التطبيق بشكل طبيعي بدون الرسوم.
+        تأكد أنك متصل بالإنترنت ثم أعد فتح الملف إذا رغبت في رؤية الرسوم.
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div class="card"><div class="text-sm text-gray-500">إجمالي الحجوزات</div><div id="kpi-total" class="text-3xl font-bold mt-1">0</div><div class="text-xs text-gray-500 mt-2">إجمالي الكميات: <span id="kpi-qty">0</span></div></div>
+        <div class="card"><div class="text-sm text-gray-500">قيد الانتظار</div><div id="kpi-pending" class="text-3xl font-bold mt-1">0</div></div>
+        <div class="card"><div class="text-sm text-gray-500">مؤكَّد</div><div id="kpi-confirmed" class="text-3xl font-bold mt-1">0</div></div>
+        <div class="card"><div class="text-sm text-gray-500">ملغي</div><div id="kpi-cancelled" class="text-3xl font-bold mt-1">0</div></div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="card">
+          <h3 class="font-semibold mb-2">📊 الكميات حسب الصنف</h3>
+          <canvas id="chartByVariety" height="280"></canvas>
         </div>
-        <div class="row2">
-          <div><label class="small">الحالة</label>
-            <select id="f_status">
-              <option value="New">جديد</option>
-              <option value="Confirmed">مؤكد</option>
-              <option value="Ready">جاهز</option>
-              <option value="Delivered">مُسلّم</option>
-              <option value="Canceled">ملغى</option>
-            </select>
-          </div>
-          <div><label class="small">التاريخ</label><input id="f_date" type="date"></div>
+        <div class="card">
+          <h3 class="font-semibold mb-2">📈 عدد الحجوزات يوميًا</h3>
+          <canvas id="chartByDay" height="280"></canvas>
         </div>
-        <div class="row2">
-          <div><label class="small">التوصيل</label>
-            <select id="f_delivery">
-              <option value="Office">مكتب ياليدين</option>
-              <option value="Home">للعنوان</option>
-              <option value="Pickup">استلام يدوي</option>
-            </select>
-          </div>
-          <div><label class="small">المدينة</label><input id="f_city" placeholder="خنشلة.."></div>
+        <div class="card lg:col-span-2">
+          <h3 class="font-semibold mb-2">🧁 توزيع الحالات</h3>
+          <div class="flex items-center justify-center"><canvas id="chartStatuses" height="280"></canvas></div>
         </div>
-        <div><label class="small">ملاحظات</label><textarea id="f_notes" placeholder="..."></textarea></div>
+      </div>
+    </section>
 
-        <div class="card" style="background:#0b1220">
-          <h4 style="margin:0 0 6px 0;">أصناف الطلب</h4>
-          <div class="row3">
-            <div>
-              <label class="small">الصنف (من القائمة)</label>
-              <select id="i_sel"></select>
-              <div class="small">حرّر القائمة من بوابة "الأصناف"</div>
+    <!-- New -->
+    <section id="tab-new" class="hidden">
+      <div class="card">
+        <h3 class="font-semibold mb-3">➕ إضافة حجز جديد</h3>
+        <form id="orderForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="card">
+            <h4 class="font-semibold mb-3">👤 معلومات الزبون</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label class="text-sm grid gap-1"><span class="text-gray-600">الاسم الكامل *</span><input id="customerName" /></label>
+              <label class="text-sm grid gap-1"><span class="text-gray-600">الهاتف *</span><input id="phone" /></label>
+              <label class="text-sm grid gap-1"><span class="text-gray-600">المدينة</span><input id="city" /></label>
+              <label class="text-sm grid gap-1"><span class="text-gray-600">العنوان</span><input id="address" /></label>
             </div>
-            <div><label class="small">العدد</label><input id="i_qty" type="number" min="1" value="1"></div>
-            <div><label class="small">سعر/وحدة</label><input id="i_ppu" type="number" min="0" step="0.01" placeholder="دج"></div>
           </div>
-          <div style="margin-top:8px"><button id="i_add" type="button">إضافة الصنف</button></div>
-          <table class="table" id="it_tbl">
-            <thead><tr><th>#</th><th>الصنف</th><th>العدد</th><th>سعر/وحدة</th><th>المجموع</th><th>—</th></tr></thead>
-            <tbody></tbody>
-          </table>
-          <div class="small" id="it_hint">أضف صنفًا واحدًا أو أكثر قبل الحفظ.</div>
-        </div>
+          <div class="card">
+            <h4 class="font-semibold mb-3">🌱 تفاصيل الحجز</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label class="text-sm grid gap-1"><span class="text-gray-600">الصنف *</span><input id="variety" placeholder="مثال: Black Madeira" /></label>
+              <label class="text-sm grid gap-1"><span class="text-gray-600">الكمية *</span><input id="quantity" type="number" value="1" min="1" /></label>
+              <label class="text-sm grid gap-1"><span class="text-gray-600">الحالة</span>
+                <select id="status">
+                  <option value="pending">قيد الانتظار</option>
+                  <option value="confirmed">مؤكد</option>
+                  <option value="shipped">مُرسَل</option>
+                  <option value="delivered">تمّ التسليم</option>
+                  <option value="cancelled">ملغي</option>
+                </select>
+              </label>
+              <label class="text-sm grid gap-1"><span class="text-gray-600">طريقة التوصيل</span>
+                <select id="deliveryMethod">
+                  <option value="yalidine_office">مكتب Yalidine</option>
+                  <option value="home">توصيل للمنزل</option>
+                  <option value="pickup">استلام من المشتل</option>
+                </select>
+              </label>
+              <label class="text-sm grid gap-1"><span class="text-gray-600">عربون (دج)</span><input id="depositDZD" type="number" /></label>
+              <label class="text-sm grid gap-1"><span class="text-gray-600">ملاحظات</span><input id="notes" /></label>
+            </div>
+          </div>
+          <div class="md:col-span-2 flex items-center gap-2">
+            <button class="px-4 py-2 rounded-xl text-white" style="background:#111" type="submit">حفظ الحجز</button>
+            <button class="px-4 py-2 rounded-xl border" type="reset">مسح</button>
+          </div>
+        </form>
+      </div>
+    </section>
 
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="primary" id="save" type="button">حفظ</button>
-          <button id="new" type="button">تفريغ النموذج</button>
-          <button class="danger" id="del" type="button" style="display:none">حذف</button>
-        </div>
-      </section>
+    <!-- List -->
+    <section id="tab-list" class="hidden grid gap-4">
+      <div class="card flex flex-wrap items-end gap-2">
+        <label class="text-sm grid gap-1"><span class="text-gray-600">بحث</span><input id="filter-q" placeholder="اسم/هاتف/مدينة/صنف"/></label>
+        <label class="text-sm grid gap-1"><span class="text-gray-600">الحالة</span>
+          <select id="filter-status">
+            <option value="all">الكل</option>
+            <option value="pending">قيد الانتظار</option>
+            <option value="confirmed">مؤكد</option>
+            <option value="shipped">مُرسَل</option>
+            <option value="delivered">تمّ التسليم</option>
+            <option value="cancelled">ملغي</option>
+          </select>
+        </label>
+        <label class="text-sm grid gap-1"><span class="text-gray-600">الصنف</span>
+          <select id="filter-variety"><option value="all">الكل</option></select>
+        </label>
+        <button id="btn-export-selected" class="px-3 py-2 rounded-xl border">تصدير المحدد</button>
+      </div>
 
-      <section class="card">
-        <h3 style="margin:0 0 6px 0;">قائمة الطلبات</h3>
-        <input id="q" placeholder="بحث بالاسم / الهاتف / الصنف...">
-        <table class="table" id="tbl">
-          <thead><tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>الأصناف</th><th>العدد</th><th>الإجمالي</th><th>—</th></tr></thead>
-          <tbody></tbody>
+      <div class="card tableFixHead">
+        <table class="min-w-full text-sm" id="ordersTable">
+          <thead>
+            <tr class="bg-gray-50">
+              <th class="p-3 text-right"><input id="checkAll" type="checkbox" /></th>
+              <th class="p-3 text-right">التاريخ</th>
+              <th class="p-3 text-right">الاسم</th>
+              <th class="p-3 text-right">الهاتف</th>
+              <th class="p-3 text-right">الصنف</th>
+              <th class="p-3 text-right">الكمية</th>
+              <th class="p-3 text-right">الحالة</th>
+              <th class="p-3 text-right">المدينة</th>
+              <th class="p-3 text-right">ملاحظات</th>
+              <th class="p-3 text-right">إجراءات</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
         </table>
-        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-          <button id="print" type="button">طباعة لائحة التحضير</button>
-          <button class="danger" id="clear" type="button">تفريغ الطلبات</button>
-        </div>
-      </section>
-    </div>
-  </section>
-</section>
+      </div>
 
-<!-- Catalog -->
-<section id="view-catalog" class="container view">
-  <section class="card">
-    <h2 style="margin:0 0 8px 0;">🧺 الأصناف</h2>
-    <div class="row2">
-      <div><label class="small">اسم الصنف</label><input id="c_name" placeholder="Black Madeira"></div>
-      <div><label class="small">سعر افتراضي</label><input id="c_ppu" type="number" min="0" step="0.01" placeholder="دج"></div>
-    </div>
-    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
-      <button id="c_add" type="button">إضافة</button>
-      <button class="danger" id="c_clear" type="button">تفريغ الأصناف</button>
-    </div>
-    <table class="table" id="c_tbl">
-      <thead><tr><th>#</th><th>الصنف</th><th>سعر افتراضي</th><th>—</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </section>
-</section>
+      <div class="card">
+        <h3 class="font-semibold mb-2">⚙️ عمليات منفصلة</h3>
+        <ul class="list-disc pr-5 text-sm text-gray-700 space-y-1">
+          <li>إضافة: كل حجز يُسجّل كسطر مستقل بمعرّف <code>id</code> فريد.</li>
+          <li>تعديل: تحديث نفس السجل دون إنشاء سجل جديد.</li>
+          <li>تغيير حالة: عملية مستقلة لا تغيّر بقية الحقول.</li>
+          <li>حذف: يزيل السجل نهائيًا بعد تأكيد.</li>
+          <li>تصدير/استيراد: JSON للمزامنة اليدوية بين الأجهزة.</li>
+        </ul>
+      </div>
+
+      <div class="fixed bottom-4 left-1/2 -translate-x-1/2">
+        <div class="flex gap-2 bg-white/90 backdrop-blur border rounded-2xl p-2 shadow">
+          <button class="px-3 py-2 rounded-xl border" id="btn-send-yalidine">🚚 إرسال لــ Yalidine (قريبًا)</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="tab-settings" class="hidden grid gap-4">
+      <div class="card grid gap-3">
+        <h3 class="font-semibold">💾 النسخ الاحتياطي</h3>
+        <div class="flex flex-wrap gap-2">
+          <button id="btn-export-all" class="px-4 py-2 rounded-xl border">تصدير كل البيانات JSON</button>
+          <button id="btn-import" class="px-4 py-2 rounded-xl border">استيراد JSON</button>
+          <input id="fileImport" type="file" accept="application/json" hidden />
+        </div>
+        <p class="text-sm text-gray-600">البيانات تُحفَظ محليًا في المتصفح (LocalStorage). للتنقل بين الأجهزة، استعمل التصدير والاستيراد.</p>
+      </div>
+      <div class="card grid gap-3">
+        <h3 class="font-semibold">🚚 إعداد تكامل Yalidine (لاحقًا)</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
+          <label class="text-sm grid gap-1"><span class="text-gray-600">API Token</span><input id="yalidineToken" /></label>
+          <label class="text-sm grid gap-1"><span class="text-gray-600">Endpoint الأساسي</span><input id="yalidineBase" placeholder="مثال: https://api.yalidine.com/v1" /></label>
+        </div>
+        <p class="text-sm text-gray-600">بعد ضبط التوثيق سنفعّل الإرسال المباشر لكل طلب.</p>
+      </div>
+    </section>
+
+    <footer class="py-6 text-center text-xs text-gray-500">نسخة محلية (Local‑First). احفظ ملف JSON دوريًا كنسخة احتياطية.</footer>
+  </div>
 
 <script>
 (function(){
-  // ===== Basic helpers =====
-  function $(s){return document.querySelector(s)}
-  function $$(s){return Array.prototype.slice.call(document.querySelectorAll(s))}
-  function fmt(n){return (n||0).toLocaleString('ar-DZ')}
-  function uid(){return 'o_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
-  function idCat(){return 'cv_'+Math.random().toString(36).slice(2,8)}
-  function idItem(){return 'it_'+Math.random().toString(36).slice(2,8)}
+  const STORAGE_KEY = 'figPreordersV1';
+  const STATUS_OPTIONS = ['pending','confirmed','shipped','delivered','cancelled'];
 
-  // ===== Tabs routing (simple & robust)
-  function switchView(v){
-    var ids=['stats','orders','catalog']
-    if(ids.indexOf(v)===-1) v='stats'
-    $$('.tab').forEach(t=>t.classList.toggle('active', t.dataset.view===v))
-    $$('.dock button').forEach(b=>b.classList.toggle('active', b.dataset.view===v))
-    $('#view-stats').classList.toggle('active', v==='stats')
-    $('#view-orders').classList.toggle('active', v==='orders')
-    $('#view-catalog').classList.toggle('active', v==='catalog')
-    if(location.hash!=='#'+v) location.hash='#'+v
-    window.scrollTo(0,0)
+  // Tabs
+  const tabs = ['dashboard','new','list','settings'];
+  const tabButtons = document.querySelectorAll('[data-tab]');
+  tabButtons.forEach(btn=>btn.addEventListener('click',()=>showTab(btn.dataset.tab)));
+  function showTab(id){
+    tabs.forEach(t=>{
+      const sec = document.getElementById('tab-'+t);
+      if(!sec) return;
+      if(t===id){ sec.classList.remove('hidden'); } else { sec.classList.add('hidden'); }
+    });
+    if(id==='list') renderList();
+    if(id==='dashboard') renderCharts();
   }
-  $$('.tab').forEach(t=>t.addEventListener('click', ()=>switchView(t.dataset.view)))
-  $$('.dock button').forEach(b=>b.addEventListener('click', ()=>switchView(b.dataset.view)))
-  window.addEventListener('hashchange', ()=>switchView((location.hash||'').replace('#','')||'stats'))
-  switchView((location.hash||'').replace('#','')||'stats')
+  showTab('dashboard');
 
-  // ===== Storage keys =====
-  const K_CAT='fig_catalog_v1', K_ORD='fig_orders_v1'
-
-  function load(k){try{return JSON.parse(localStorage.getItem(k))||[]}catch(e){return[]}}
-  function save(k,v){try{localStorage.setItem(k, JSON.stringify(v))}catch(e){alert('تعذر الحفظ')}}
-
-  // ===== Catalog =====
-  let catalog = load(K_CAT)
-  function renderCatalog(){
-    const tb=$('#c_tbl tbody'); tb.innerHTML=''
-    catalog.forEach((c,i)=>{
-      const tr=document.createElement('tr')
-      tr.innerHTML = `<td class="small">${i+1}</td><td>${c.name||''}</td><td>${fmt(c.ppu||0)}</td>
-      <td><a href="#" data-act="e" data-id="${c.id}">تعديل</a> • <a href="#" data-act="d" data-id="${c.id}">حذف</a></td>`
-      tb.appendChild(tr)
-    })
-    // fill select in Orders
-    const sel = $('#i_sel'); sel.innerHTML=''
-    catalog.forEach(c=>{ const op=document.createElement('option'); op.value=c.id; op.textContent=c.name; sel.appendChild(op)})
+  // Storage helpers
+  function load(){
+    try{ const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw): []; }catch(e){ return []; }
   }
-  $('#c_add').addEventListener('click', ()=>{
-    const name=($('#c_name').value||'').trim(); const ppu=parseFloat($('#c_ppu').value||'0')||0
-    if(!name){alert('اسم الصنف مطلوب');return}
-    catalog.push({id:idCat(), name, ppu}); save(K_CAT,catalog); renderCatalog(); $('#c_name').value=''; $('#c_ppu').value=''
-  })
-  $('#c_clear').addEventListener('click', ()=>{ if(!confirm('تفريغ كل الأصناف؟'))return; catalog=[]; save(K_CAT,catalog); renderCatalog()})
-  $('#c_tbl').addEventListener('click', (e)=>{
-    const a=e.target.closest && e.target.closest('a[data-act]'); if(!a) return; e.preventDefault()
-    const id=a.getAttribute('data-id'); const ix=catalog.findIndex(c=>c.id===id); if(ix<0) return
-    if(a.dataset.act==='d'){ if(confirm('حذف الصنف؟')){ catalog.splice(ix,1); save(K_CAT,catalog); renderCatalog()} }
-    else{ const n=prompt('اسم الصنف', catalog[ix].name); if(n===null) return; const p=parseFloat(prompt('سعر افتراضي', catalog[ix].ppu)||'0')||0; catalog[ix].name=n.trim(); catalog[ix].ppu=p; save(K_CAT,catalog); renderCatalog() }
-  })
+  function save(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+  function uid(){ return (crypto && crypto.randomUUID)? crypto.randomUUID(): 'id_'+Date.now()+'_'+Math.random().toString(16).slice(2); }
 
-  // ===== Orders =====
-  let orders = load(K_ORD)
-  let editingId = null
-  let items = []
+  // State
+  let orders = load();
+  let selectedIds = new Set();
 
-  function setForm(o){
-    $('#f_name').value=o.name||''; $('#f_phone').value=o.phone||''; $('#f_status').value=o.status||'New'
-    $('#f_date').value=o.date||new Date().toISOString().slice(0,10); $('#f_delivery').value=o.delivery||'Office'
-    $('#f_city').value=o.city||''; $('#f_notes').value=o.notes||''
-    items = o.items? o.items.slice():[]; renderItems()
-    $('#del').style.display = editingId? 'inline-block':'none'
+  // Form handlers
+  const form = document.getElementById('orderForm');
+  form.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const o = {
+      id: uid(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      customerName: document.getElementById('customerName').value.trim(),
+      phone: document.getElementById('phone').value.trim(),
+      city: document.getElementById('city').value.trim(),
+      address: document.getElementById('address').value.trim(),
+      variety: document.getElementById('variety').value.trim(),
+      quantity: Number(document.getElementById('quantity').value || 1),
+      status: document.getElementById('status').value,
+      deliveryMethod: document.getElementById('deliveryMethod').value,
+      depositDZD: document.getElementById('depositDZD').value,
+      notes: document.getElementById('notes').value.trim(),
+    };
+    if(!o.customerName || !o.phone || !o.variety){ alert('أكمل الاسم والهاتف والصنف'); return; }
+    if(o.quantity <= 0){ alert('الكمية يجب أن تكون أكبر من صفر'); return; }
+    orders = [o, ...orders];
+    save(orders);
+    form.reset();
+    refreshAll();
+    showTab('list');
+  });
+
+  // Filters
+  const fQ = document.getElementById('filter-q');
+  const fStatus = document.getElementById('filter-status');
+  const fVariety = document.getElementById('filter-variety');
+  [fQ,fStatus,fVariety].forEach(el=> el.addEventListener('input', renderList));
+
+  // Export / Import
+  document.getElementById('btn-export-all').addEventListener('click', ()=>{
+    downloadJSON(`fig-preorders-${new Date().toISOString().slice(0,10)}.json`, orders);
+  });
+  document.getElementById('btn-export-selected').addEventListener('click', ()=>{
+    const sel = orders.filter(o=>selectedIds.has(o.id));
+    if(sel.length===0) return alert('اختر على الأقل عنصرًا واحدًا.');
+    downloadJSON(`fig-preorders-selection-${Date.now()}.json`, sel);
+  });
+  const fileInput = document.getElementById('fileImport');
+  document.getElementById('btn-import').addEventListener('click', ()=>fileInput.click());
+  fileInput.addEventListener('change', (e)=>{
+    const file = e.target.files?.[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      try{
+        const data = JSON.parse(String(reader.result));
+        if(!Array.isArray(data)) throw new Error('صيغة غير صحيحة');
+        orders = data;
+        save(orders);
+        refreshAll();
+        alert('تم الاستيراد بنجاح');
+      }catch(err){ alert('فشل الاستيراد: '+err.message); }
+    };
+    reader.readAsText(file);
+  });
+
+  // Yalidine (placeholder)
+  document.getElementById('btn-send-yalidine').addEventListener('click', ()=>{
+    alert('زر تجريبي — سنفعّل الإرسال الفعلي بعد ضبط API Token و Endpoint في الإعدادات ومطابقة مخطط الحمولة.');
+  });
+
+  // List rendering
+  function renderList(){
+    const tbody = document.getElementById('ordersBody');
+    tbody.innerHTML = '';
+    selectedIds = new Set();
+
+    // varieties for filter
+    const allVarieties = Array.from(new Set(orders.map(o=>o.variety).filter(Boolean))).sort();
+    const currentVarietyOptions = Array.from(fVariety.options).map(o=>o.value);
+    // refresh variety filter options if changed
+    if(allVarieties.join('|') !== currentVarietyOptions.filter(v=>v!=='all').join('|')){
+      fVariety.innerHTML = '<option value="all">الكل</option>' + allVarieties.map(v=>`<option value="${v}">${v}</option>`).join('');
+    }
+
+    const q = (fQ.value||'').toLowerCase().trim();
+    const st = fStatus.value;
+    const varf = fVariety.value;
+
+    const filtered = orders.filter(o=>{
+      if(q){
+        const hay = `${o.customerName} ${o.phone} ${o.city} ${o.address} ${o.variety} ${o.notes}`.toLowerCase();
+        if(!hay.includes(q)) return false;
+      }
+      if(st!=='all' && o.status!==st) return false;
+      if(varf!=='all' && o.variety!==varf) return false;
+      return true;
+    });
+
+    filtered.forEach(o=>{
+      const tr = document.createElement('tr');
+      tr.className = 'border-t hover:bg-gray-50';
+      tr.innerHTML = `
+        <td class="p-3 align-top"><input type="checkbox" data-id="${o.id}"></td>
+        <td class="p-3 align-top whitespace-nowrap">${new Date(o.createdAt).toLocaleString('ar-DZ')}</td>
+        <td class="p-3 align-top">${escapeHtml(o.customerName)}</td>
+        <td class="p-3 align-top">${escapeHtml(o.phone)}</td>
+        <td class="p-3 align-top">${escapeHtml(o.variety)}</td>
+        <td class="p-3 align-top">${o.quantity}</td>
+        <td class="p-3 align-top">
+          <select class="px-2 py-1 border rounded" data-status="${o.id}">
+            ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${statusLabel(s)}</option>`).join('')}
+          </select>
+        </td>
+        <td class="p-3 align-top">${escapeHtml(o.city||'')}</td>
+        <td class="p-3 align-top max-w-[22ch] truncate" title="${escapeHtml(o.notes||'')}">${escapeHtml(o.notes||'')}</td>
+        <td class="p-3 align-top">
+          <div class="flex gap-2">
+            <button class="px-2 py-1 rounded border" data-edit="${o.id}">تعديل</button>
+            <button class="px-2 py-1 rounded border text-red-600" data-del="${o.id}">حذف</button>
+          </div>
+        </td>`;
+      tbody.appendChild(tr);
+    });
+
+    // bulk check
+    const checkAll = document.getElementById('checkAll');
+    checkAll.checked = false;
+    checkAll.onchange = (e)=>{
+      const checks = tbody.querySelectorAll('input[type="checkbox"][data-id]');
+      checks.forEach(ch=>{ ch.checked = e.target.checked; if(e.target.checked){selectedIds.add(ch.dataset.id);} else {selectedIds.delete(ch.dataset.id);} });
+    };
+
+    // row events
+    tbody.querySelectorAll('input[type="checkbox"][data-id]').forEach(ch=>{
+      ch.addEventListener('change', (e)=>{
+        if(e.target.checked) selectedIds.add(ch.dataset.id); else selectedIds.delete(ch.dataset.id);
+      });
+    });
+
+    tbody.querySelectorAll('button[data-del]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        if(!confirm('حذف هذا الحجز نهائيًا؟')) return;
+        orders = orders.filter(o=>o.id!==btn.dataset.del);
+        save(orders); refreshAll();
+      });
+    });
+
+    tbody.querySelectorAll('button[data-edit]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const o = orders.find(x=>x.id===btn.dataset.edit); if(!o) return;
+        // fill form and switch to new tab (edit mode)
+        showTab('new');
+        document.getElementById('customerName').value = o.customerName;
+        document.getElementById('phone').value = o.phone;
+        document.getElementById('city').value = o.city||'';
+        document.getElementById('address').value = o.address||'';
+        document.getElementById('variety').value = o.variety;
+        document.getElementById('quantity').value = o.quantity;
+        document.getElementById('status').value = o.status;
+        document.getElementById('deliveryMethod').value = o.deliveryMethod;
+        document.getElementById('depositDZD').value = o.depositDZD||'';
+        document.getElementById('notes').value = o.notes||'';
+        // hijack submit to update instead of create once
+        const once = (ev)=>{
+          ev.preventDefault();
+          const idx = orders.findIndex(x=>x.id===o.id);
+          if(idx>-1){
+            orders[idx] = {
+              ...o,
+              updatedAt: new Date().toISOString(),
+              customerName: document.getElementById('customerName').value.trim(),
+              phone: document.getElementById('phone').value.trim(),
+              city: document.getElementById('city').value.trim(),
+              address: document.getElementById('address').value.trim(),
+              variety: document.getElementById('variety').value.trim(),
+              quantity: Number(document.getElementById('quantity').value || 1),
+              status: document.getElementById('status').value,
+              deliveryMethod: document.getElementById('deliveryMethod').value,
+              depositDZD: document.getElementById('depositDZD').value,
+              notes: document.getElementById('notes').value.trim(),
+            };
+            save(orders); refreshAll(); showTab('list');
+          }
+          form.removeEventListener('submit', once);
+        };
+        form.addEventListener('submit', once);
+      });
+    });
+
+    tbody.querySelectorAll('select[data-status]').forEach(sel=>{
+      sel.addEventListener('change', ()=>{
+        const o = orders.find(x=>x.id===sel.dataset.status); if(!o) return;
+        o.status = sel.value; o.updatedAt = new Date().toISOString();
+        save(orders); refreshAll();
+      });
+    });
   }
-  function getForm(){
-    const existing = editingId ? orders.find(x=>x.id===editingId) : null
-    return {
-      id: editingId || uid(),
-      name: ($('#f_name').value||'').trim(),
-      phone: ($('#f_phone').value||'').trim(),
-      status: $('#f_status').value||'New',
-      date: $('#f_date').value || new Date().toISOString().slice(0,10),
-      delivery: $('#f_delivery').value||'Office',
-      city: ($('#f_city').value||'').trim(),
-      notes: ($('#f_notes').value||'').trim(),
-      items: items.slice(),
-      createdAt: existing && existing.createdAt ? existing.createdAt : Date.now(),
-      updatedAt: Date.now()
+
+  // KPIs + Charts
+  let chartVariety, chartDay, chartStatus;
+  function renderKPIs(){
+    const total = orders.length;
+    const qtyTotal = orders.reduce((s,o)=> s + Number(o.quantity||0), 0);
+    const byStatus = STATUS_OPTIONS.reduce((acc,s)=> (acc[s]=orders.filter(o=>o.status===s).length, acc), {});
+    document.getElementById('kpi-total').textContent = total;
+    document.getElementById('kpi-qty').textContent = qtyTotal;
+    document.getElementById('kpi-pending').textContent = byStatus.pending||0;
+    document.getElementById('kpi-confirmed').textContent = byStatus.confirmed||0;
+    document.getElementById('kpi-cancelled').textContent = byStatus.cancelled||0;
+  }
+  function renderCharts(){
+    // KPIs تعمل دائمًا
+    renderKPIs();
+
+    // إذا لم تتوفر مكتبة Chart.js (انقطاع إنترنت/حجب)، نتوقف عن رسم الرسوم ونُظهر تنبيهًا
+    if(!window.Chart){
+      const warn = document.getElementById('chartsWarning');
+      if(warn) warn.classList.remove('hidden');
+      return;
+    }
+
+    try {
+      // by variety (bar)
+      const mapV = new Map();
+      orders.forEach(o=>{ if(!o.variety) return; mapV.set(o.variety, (mapV.get(o.variety)||0) + Number(o.quantity||0)); });
+      const labelsV = Array.from(mapV.keys());
+      const dataV = Array.from(mapV.values());
+      if(chartVariety) chartVariety.destroy();
+      chartVariety = new Chart(document.getElementById('chartByVariety'), {
+        type: 'bar', data: { labels: labelsV, datasets: [{ label:'الكمية', data: dataV }] }, options:{ responsive:true, maintainAspectRatio:false }
+      });
+
+      // by day (line)
+      const mapD = new Map();
+      orders.forEach(o=>{ const d = new Date(o.createdAt); const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString(); mapD.set(key,(mapD.get(key)||0)+1); });
+      const entriesD = Array.from(mapD.entries()).sort((a,b)=> new Date(a[0]) - new Date(b[0]));
+      const labelsD = entriesD.map(([k])=> new Date(k).toLocaleDateString('ar-DZ'));
+      const dataD = entriesD.map(([_,v])=> v);
+      if(chartDay) chartDay.destroy();
+      chartDay = new Chart(document.getElementById('chartByDay'), {
+        type: 'line', data: { labels: labelsD, datasets: [{ label:'عدد الحجوزات', data: dataD, tension: .3 }] }, options:{ responsive:true, maintainAspectRatio:false }
+      });
+
+      // statuses (pie)
+      const counts = STATUS_OPTIONS.map(s=> orders.filter(o=>o.status===s).length);
+      const labelsS = STATUS_OPTIONS.map(statusLabel);
+      if(chartStatus) chartStatus.destroy();
+      chartStatus = new Chart(document.getElementById('chartStatuses'), {
+        type: 'pie', data: { labels: labelsS, datasets: [{ data: counts }] }, options:{ responsive:true, maintainAspectRatio:false }
+      });
+    } catch(err){
+      const warn = document.getElementById('chartsWarning');
+      if(warn){ warn.textContent = '⚠️ تعذّر رسم الرسوم البيانية: '+ err.message; warn.classList.remove('hidden'); }
     }
   }
-  function renderItems(){
-    const tb=$('#it_tbl tbody'); tb.innerHTML=''; let total=0
-    items.forEach((it,i)=>{
-      const sum=(it.qty||0)*(it.ppu||0); total+=sum
-      const tr=document.createElement('tr')
-      tr.innerHTML = `<td class="small">${i+1}</td><td>${it.variety}</td><td>${fmt(it.qty)}</td><td>${fmt(it.ppu)}</td><td>${fmt(Math.round(sum))}</td>
-      <td><a href="#" data-act="e" data-i="${i}">تعديل</a> • <a href="#" data-act="d" data-i="${i}">حذف</a></td>`
-      tb.appendChild(tr)
-    })
-    $('#it_hint').textContent = items.length? `إجمالي البنود: ${items.length} | المجموع التقريبي: ${fmt(Math.round(total))} دج` : 'أضف صنفًا واحدًا أو أكثر قبل الحفظ.'
+
+  function refreshAll(){ renderList(); renderCharts(); }
+
+  // Helpers
+  function statusLabel(v){
+    return {
+      pending: 'قيد الانتظار', confirmed: 'مؤكد', shipped: 'مُرسَل', delivered: 'تمّ التسليم', cancelled: 'ملغي'
+    }[v] || v;
   }
-  $('#i_sel').addEventListener('change', ()=>{
-    const cv=catalog.find(c=>c.id===$('#i_sel').value); if(cv) $('#i_ppu').value = cv.ppu || 0
-  })
-  $('#i_add').addEventListener('click', ()=>{
-    const cv=catalog.find(c=>c.id===$('#i_sel').value); if(!cv){alert('اختر صنفًا');return}
-    const q=parseInt($('#i_qty').value||'0',10)||0; const p=parseFloat($('#i_ppu').value||'0')||0
-    if(q<=0){alert('عدد غير صالح');return}
-    items.push({id:idItem(), variety:cv.name, qty:q, ppu:p}); $('#i_qty').value=1; $('#i_ppu').value=cv.ppu||''; renderItems()
-  })
-  $('#it_tbl').addEventListener('click', (e)=>{
-    const a=e.target.closest && e.target.closest('a[data-act]'); if(!a) return; e.preventDefault()
-    const i=parseInt(a.getAttribute('data-i')||'-1',10); if(i<0) return
-    if(a.dataset.act==='d'){ if(confirm('حذف البند؟')){ items.splice(i,1); renderItems() } }
-    else{ const q=parseInt(prompt('العدد', items[i].qty)||'0',10)||0; const p=parseFloat(prompt('سعر/وحدة', items[i].ppu)||'0')||0; if(q<=0){alert('قيمة غير صالحة');return} items[i].qty=q; items[i].ppu=p; renderItems() }
-  })
-
-  $('#save').addEventListener('click', ()=>{
-    const o=getForm(); if(!o.name){alert('الاسم مطلوب');return} if(!o.items.length){alert('أضف صنفًا واحدًا');return}
-    const ix = orders.findIndex(x=>x.id===o.id)
-    if(ix>=0){ orders[ix]=o } else { orders.push(o) }
-    save(K_ORD, orders); renderOrders(); setForm({items:[]}); editingId=null; updateStats(); alert(ix>=0? 'تم تحديث الطلب' : 'تم حفظ الطلب')
-  })
-  $('#new').addEventListener('click', ()=>{ editingId=null; setForm({items:[]}) })
-  $('#del').addEventListener('click', ()=>{
-    if(!editingId) return; if(!confirm('حذف الطلب نهائيًا؟'))return
-    orders = orders.filter(x=>x.id!==editingId); save(K_ORD,orders); renderOrders(); editingId=null; setForm({items:[]}); updateStats()
-  })
-
-  function renderOrders(){
-    const q=($('#q').value||'').trim().toLowerCase()
-    const tb=$('#tbl tbody'); tb.innerHTML=''
-    const filtered = orders.filter(o=> !q || (o.name&&o.name.toLowerCase().includes(q)) || (o.phone&&o.phone.toLowerCase().includes(q)) || (o.items||[]).some(it=>it.variety.toLowerCase().includes(q)) )
-      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0))
-    filtered.forEach((o,i)=>{
-      const sum=(o.items||[]).reduce((s,it)=>s+(it.qty||0)*(it.ppu||0),0)
-      const qty=(o.items||[]).reduce((s,it)=>s+(it.qty||0),0)
-      const names=(o.items||[]).map(it=>it.variety).join('، ')
-      const tr=document.createElement('tr')
-      tr.innerHTML = `<td class="small">${i+1}</td><td>${o.name}</td><td class="small">${o.phone}</td><td>${names}</td><td>${fmt(qty)}</td><td>${fmt(Math.round(sum))}</td>
-      <td><a href="#" data-id="${o.id}">فتح</a></td>`
-      tb.appendChild(tr)
-    })
+  function downloadJSON(filename, data){
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   }
-  $('#tbl').addEventListener('click', (e)=>{
-    const a=e.target.closest && e.target.closest('a[data-id]'); if(!a) return; e.preventDefault()
-    const id=a.getAttribute('data-id'); const o=orders.find(x=>x.id===id); if(!o) return
-    editingId=id; setForm(o); switchView('orders'); window.scrollTo(0,0)
-  })
-  $('#q').addEventListener('input', renderOrders)
+  function escapeHtml(str){ return String(str).replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[s])); }
 
-  $('#clear').addEventListener('click', ()=>{ if(!confirm('تفريغ كل الطلبات؟'))return; orders=[]; save(K_ORD,orders); renderOrders(); updateStats() })
-
-  // Print list grouped per customer
-  $('#print').addEventListener('click', ()=>{
-    const blocks = orders.map((o,i)=>{
-      const items = (o.items||[]).map(it=>{
-        const s=(it.qty||0)*(it.ppu||0)
-        return `   • ${it.variety} × ${it.qty} — سعر/وحدة: ${it.ppu} — المجموع: ${Math.round(s)} دج`
-      }).join('\n')
-      const total = (o.items||[]).reduce((s,it)=>s+(it.qty||0)*(it.ppu||0),0)
-      const qty = (o.items||[]).reduce((s,it)=>s+(it.qty||0),0)
-      return `${i+1}) ${o.name||''} – ${o.phone||''} – ${o.city||''}\n${items}\n   الإجمالي الكلي: ${Math.round(total)} دج   |   عدد الشتلات: ${qty}`
-    })
-    const w=window.open('','_blank')
-    if(!w){alert('يمنع المتصفح فتح النافذة');return}
-    w.document.write(`<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><title>لائحة التحضير</title>
-    <style>body{font-family:system-ui;padding:20px} h2{margin:0 0 12px 0} pre{white-space:pre-wrap;line-height:1.7}</style>
-    <h2>🧾 لائحة التحضير (${orders.length} طلب)</h2><pre>${blocks.join('\n\n')}</pre><script>window.print()</script>`)
-    w.document.close()
-  })
-
-  // ===== Stats =====
-  function updateStats(){
-    const totalOrders = orders.length
-    const totalQty = orders.reduce((s,o)=>s+(o.items||[]).reduce((a,it)=>a+(it.qty||0),0),0)
-    const totalSum = orders.reduce((s,o)=>s+(o.items||[]).reduce((a,it)=>a+(it.qty||0)*(it.ppu||0),0),0)
-    $('#st_orders').textContent = fmt(totalOrders)
-    $('#st_qty').textContent    = fmt(totalQty)
-    $('#st_sum').textContent    = fmt(Math.round(totalSum))
-  }
-
-  // ===== Init =====
-  // Default date
-  $('#f_date').value = new Date().toISOString().slice(0,10)
-  renderCatalog(); renderOrders(); updateStats(); setForm({items:[]})
+  // Initial
+  refreshAll();
 })();
 </script>
 </body>
