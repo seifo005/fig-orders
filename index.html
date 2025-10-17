@@ -3,25 +3,216 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>📦 حجوزات التين</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>حجوزات أصناف التين — طباعة + إحصائيات مالية + شتلات/عُقل</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root { --b:#e5e7eb; --bg:#f3f4f6; --fg:#111; --muted:#6b7280; }
+    html, body { height:100%; background:var(--bg); color:var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 12px 16px; }
+    .row { display: grid; gap: 12px; }
+    @media (min-width:768px){ .cols-2{grid-template-columns:1fr 1fr} .cols-3{grid-template-columns:repeat(3,1fr)} .cols-4{grid-template-columns:repeat(4,1fr)} }
+    .card { background:#fff; border:1px solid var(--b); border-radius:16px; padding:16px; }
+    .pill { border:1px solid var(--b); background:#fff; border-radius:999px; padding:6px 12px; cursor:pointer; }
+    .btn { border:1px solid var(--b); border-radius:12px; padding:8px 12px; background:#fff; cursor:pointer; }
+    .btn.primary { background:#111; color:#fff; }
+    input,select,textarea { width:100%; box-sizing:border-box; border:1px solid var(--b); border-radius:10px; padding:8px 10px; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:10px; border-top:1px solid #f0f0f0; text-align:right; vertical-align:top; }
+    thead th { background:#fafafa; position:sticky; top:0; z-index:1; }
+    .muted { color:var(--muted); font-size:12px; }
+    .badge { font-size:12px; border:1px solid var(--b); border-radius:999px; padding:2px 8px; display:inline-block; }
+    .hidden { display:none; }
+    .print-logo { font-weight:800; font-size:18px; }
+    .print-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .print-box { border:1px solid #ccc; border-radius:12px; padding:12px; margin-bottom:8px; }
+    @media print {
+      .no-print { display:none !important; }
+      body { background:#fff; }
+      .print-page { page-break-after: always; }
+    }
+  </style>
 </head>
-<body class="bg-gray-100">
-  <div class="max-w-7xl mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">📦 حجوزات التين</h1>
-    <nav class="flex gap-2 mb-6">
-      <button data-tab="dashboard" class="px-3 py-1 border rounded">لوحة البيانات</button>
-      <button data-tab="new" class="px-3 py-1 border rounded">إضافة حجز</button>
-      <button data-tab="list" class="px-3 py-1 border rounded">الحجوزات</button>
-      <button data-tab="settings" class="px-3 py-1 border rounded">الإعدادات</button>
+<body>
+<div class="wrap">
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px">
+    <h1 style="font-size:22px;font-weight:900">📦 حجوزات أصناف التين — نسخة v3</h1>
+    <nav style="display:flex;flex-wrap:wrap;gap:8px">
+      <button class="pill" data-tab="dashboard">لوحة البيانات</button>
+      <button class="pill" data-tab="new">إضافة حجز</button>
+      <button class="pill" data-tab="list">الحجوزات</button>
+      <button class="pill" data-tab="settings">الإعدادات</button>
     </nav>
+  </header>
 
-    <section id="tab-dashboard"></section>
-    <section id="tab-new" class="hidden"></section>
-    <section id="tab-list" class="hidden"></section>
-    <section id="tab-settings" class="hidden"></section>
-  </div>
-  <script src="app.js"></script>
+  <section id="tab-dashboard" class="row hidden">
+    <div id="chartsWarning" class="card no-print hidden">⚠️ لم تُحمَّل مكتبة Chart.js؛ سيعمل التطبيق بدون الرسوم.</div>
+    <div id="storageWarning" class="card no-print hidden">⚠️ تعذّر الحفظ المحلي. اربط ملفات JSON للحفظ المباشر.</div>
+    <div class="row cols-4">
+      <div class="card"><div class="muted">عدد الطلبات</div><div id="kpi-orders" style="font-size:26px;font-weight:800">0</div></div>
+      <div class="card"><div class="muted">إجمالي العناصر</div><div id="kpi-items" style="font-size:26px;font-weight:800">0</div></div>
+      <div class="card"><div class="muted">إجمالي الكميات</div><div id="kpi-qty" style="font-size:26px;font-weight:800">0</div></div>
+      <div class="card"><div class="muted">القيمة الإجمالية (متوقعة)</div><div id="kpi-amount" style="font-size:26px;font-weight:800">0 دج</div></div>
+    </div>
+    <div class="row cols-3">
+      <div class="card"><div class="muted">مستلم (تم التسليم)</div><div id="kpi-delivered-amount" style="font-size:24px;font-weight:800">0 دج</div></div>
+      <div class="card"><div class="muted">العربون المُستلم</div><div id="kpi-deposits" style="font-size:24px;font-weight:800">0 دج</div></div>
+      <div class="card"><div class="muted">المتبقي على الزبائن</div><div id="kpi-outstanding" style="font-size:24px;font-weight:800">0 دج</div></div>
+    </div>
+    <div class="row cols-2">
+      <div class="card">
+        <h3 style="margin:0 0 10px 0">📊 الكميات حسب الصنف</h3>
+        <canvas id="chartByVariety" height="280"></canvas>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px 0">📈 عدد الطلبات يوميًا</h3>
+        <canvas id="chartByDay" height="280"></canvas>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px 0">💰 المداخيل شهريًا (المُسلَّمة)</h3>
+        <canvas id="chartRevenueMonthly" height="280"></canvas>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 10px 0">🧁 توزيع الحالات</h3>
+        <div style="display:flex;justify-content:center"><canvas id="chartStatuses" height="280"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-new" class="row">
+    <div class="card">
+      <h3 style="margin:0 0 10px 0">➕ إضافة حجز جديد (يدعم عدة أصناف وأنواع: شتلة/عقلة) <span id="editBadge" class="badge" style="display:none;margin-right:6px">وضع تعديل</span></h3>
+      <form id="orderForm" class="row cols-2">
+        <div class="card">
+          <h4 style="margin:0 0 10px 0">👤 معلومات الزبون</h4>
+          <div class="row cols-2">
+            <label class="muted">الاسم الكامل *<input id="customerName" required></label>
+            <label class="muted">الهاتف *<input id="phone" inputmode="numeric" pattern="\d+" required></label>
+            <label class="muted">المدينة<input id="city"></label>
+            <label class="muted">العنوان<input id="address"></label>
+          </div>
+          <div class="muted">الأرقام فقط مسموح بها للهاتف؛ يتم إزالة الأحرف تلقائيًا.</div>
+          <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
+            <button id="btn-link-orders-json" type="button" class="btn no-print">🔗 ربط ملف orders.json</button>
+          </div>
+        </div>
+        <div class="card">
+          <h4 style="margin:0 0 10px 0">🌱 عناصر الطلب</h4>
+          <div class="row cols-2">
+            <label class="muted">نوع العنصر
+              <select id="itemKind">
+                <option value="seedling">شتلة</option>
+                <option value="cutting">عقلة</option>
+              </select>
+            </label>
+            <label class="muted">الصنف *<select id="varietySelect"></select></label>
+            <label class="muted">الكمية *<input id="itemQty" type="number" value="1" min="1"></label>
+            <label class="muted">السعر للوحدة (دج)<input id="itemPrice" type="number" min="0" step="1" placeholder="يمتلئ تلقائيًا"></label>
+            <div style="align-self:end"><button id="addItem" type="button" class="btn">إضافة عنصر</button></div>
+          </div>
+          <div style="margin-top:8px; overflow:auto">
+            <table id="itemsTable">
+              <thead><tr><th>#</th><th>النوع</th><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><th>—</th></tr></thead>
+              <tbody id="itemsBody"></tbody>
+              <tfoot><tr style="background:#fafafa;font-weight:600"><td colspan="5">الإجمالي</td><td id="itemsTotal">0 دج</td><td></td></tr></tfoot>
+            </table>
+          </div>
+          <div class="row cols-2" style="margin-top:8px">
+            <label class="muted">الحالة
+              <select id="status">
+                <option value="pending">قيد الانتظار</option>
+                <option value="confirmed">مؤكد</option>
+                <option value="shipped">مُرسَل</option>
+                <option value="delivered">تمّ التسليم</option>
+                <option value="cancelled">ملغي</option>
+              </select>
+            </label>
+            <label class="muted">طريقة التوصيل
+              <select id="deliveryMethod">
+                <option value="yalidine_office">مكتب Yalidine</option>
+                <option value="home">توصيل للمنزل</option>
+                <option value="pickup">استلام من المشتل</option>
+              </select>
+            </label>
+            <label class="muted">عربون (دج)<input id="depositDZD" type="number" min="0" step="1"></label>
+            <label class="muted">ملاحظات<input id="notes"></label>
+          </div>
+        </div>
+        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center">
+          <button class="btn primary" type="submit">حفظ الحجز</button>
+          <button class="btn" type="reset" id="resetForm">مسح</button>
+          <button class="btn no-print" id="btn-print-order" type="button">🖨️ طباعة هذا الحجز</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section id="tab-list" class="row hidden">
+    <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end">
+      <label class="muted">بحث<input id="filter-q" placeholder="اسم/هاتف/مدينة/صنف"></label>
+      <label class="muted">الحالة
+        <select id="filter-status">
+          <option value="all">الكل</option>
+          <option value="pending">قيد الانتظار</option>
+          <option value="confirmed">مؤكد</option>
+          <option value="shipped">مُرسَل</option>
+          <option value="delivered">تمّ التسليم</option>
+          <option value="cancelled">ملغي</option>
+        </select>
+      </label>
+      <button id="btn-export-selected" class="btn no-print">تصدير المحدد</button>
+      <button id="btn-print-selected" class="btn no-print">🖨️ طباعة المحدد</button>
+    </div>
+    <div class="card" style="overflow:auto;max-height:60vh">
+      <table id="ordersTable">
+        <thead>
+          <tr>
+            <th><input id="checkAll" type="checkbox"></th>
+            <th>التاريخ</th>
+            <th>الاسم</th>
+            <th>الهاتف</th>
+            <th>العناصر</th>
+            <th>الإجمالي (دج)</th>
+            <th>الحالة</th>
+            <th>المدينة</th>
+            <th>ملاحظات</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="tab-settings" class="row hidden">
+    <div class="card row">
+      <h3 style="margin:0">💾 النسخ الاحتياطي للطلبات</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="btn-export-all" class="btn no-print">تصدير كل الطلبات JSON</button>
+        <button id="btn-import" class="btn no-print">استيراد JSON</button>
+        <input id="fileImport" type="file" accept="application/json" hidden>
+        <button id="btn-link-orders-json" class="btn no-print">🔗 ربط orders.json</button>
+      </div>
+    </div>
+
+    <div class="card row">
+      <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap">
+        <h3 style="margin:0">🌱 إدارة الأصناف والأسعار (تحرير داخل التطبيق)</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="btn-link-varieties-json" class="btn no-print">🔗 ربط varieties.json</button>
+          <button id="saveVarieties" class="btn primary">حفظ الأصناف</button>
+          <button id="addVariety" class="btn">إضافة صنف</button>
+        </div>
+      </div>
+      <p class="muted">يمكنك الإضافة/التعديل/الحذف هنا. إذا ربطت <code>varieties.json</code> (Chrome/Edge) سيتم الحفظ مباشرة في الملف؛ وإلا فسيُحفظ محليًا.</p>
+      <div style="overflow:auto">
+        <table id="varietiesTable">
+          <thead><tr><th>الصنف</th><th>السعر الافتراضي (دج)</th><th>—</th></tr></thead>
+          <tbody id="varietiesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>
+<script src="app.js"></script>
 </body>
 </html>
