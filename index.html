@@ -3,490 +3,189 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>حجوزات أصناف التين — نسخة HTML</title>
-  <!-- Tailwind via CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js via CDN -->
+  <title>حجوزات أصناف التين — متعدد الأصناف</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    html, body { height: 100%; background: #f3f4f6; }
-    .card { background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:16px; }
-    .pill { border-radius: 999px; padding: 2px 10px; border:1px solid #e5e7eb; }
-    .tableFixHead { overflow-y: auto; max-height: 60vh; }
-    .tableFixHead thead th { position: sticky; top: 0; background: #f9fafb; z-index: 1; }
-    input, select, textarea { border-radius: 10px; border: 1px solid #e5e7eb; padding: 8px 10px; }
+    :root { --b:#e5e7eb; --bg:#f3f4f6; --fg:#111; --muted:#6b7280; }
+    html, body { height:100%; background:var(--bg); color:var(--fg); font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 12px 16px; }
+    .row { display: grid; gap: 12px; }
+    @media (min-width:768px){ .cols-2{grid-template-columns:1fr 1fr} .cols-4{grid-template-columns:repeat(4,1fr)} }
+    .card { background:#fff; border:1px solid var(--b); border-radius:16px; padding:16px; }
+    .pill { border:1px solid var(--b); background:#fff; border-radius:999px; padding:6px 12px; cursor:pointer; }
+    .btn { border:1px solid var(--b); border-radius:12px; padding:8px 12px; background:#fff; cursor:pointer; }
+    .btn.primary { background:#111; color:#fff; }
+    input,select,textarea { width:100%; box-sizing:border-box; border:1px solid var(--b); border-radius:10px; padding:8px 10px; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:10px; border-top:1px solid #f0f0f0; text-align:right; vertical-align:top; }
+    thead th { background:#fafafa; position:sticky; top:0; z-index:1; }
+    .muted { color:var(--muted); font-size:12px; }
+    .badge { font-size:12px; border:1px solid var(--b); border-radius:999px; padding:2px 8px; display:inline-block; }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
-  <div class="max-w-7xl mx-auto p-3 sm:p-6">
-    <header class="flex items-center justify-between gap-4 pb-4">
-      <h1 class="text-xl sm:text-2xl font-bold">📦 حجوزات أصناف التين — نسخة HTML (محلية)</h1>
-      <nav class="flex flex-wrap gap-2">
-        <button class="pill" data-tab="dashboard">لوحة البيانات</button>
-        <button class="pill" data-tab="new">إضافة حجز</button>
-        <button class="pill" data-tab="list">الحجوزات</button>
-        <button class="pill" data-tab="settings">الإعدادات</button>
-      </nav>
-    </header>
+<div class="wrap">
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:12px">
+    <h1 style="font-size:22px;font-weight:900">📦 حجوزات أصناف التين — متعدد الأصناف</h1>
+    <nav style="display:flex;flex-wrap:wrap;gap:8px">
+      <button class="pill" data-tab="dashboard">لوحة البيانات</button>
+      <button class="pill" data-tab="new">إضافة حجز</button>
+      <button class="pill" data-tab="list">الحجوزات</button>
+      <button class="pill" data-tab="settings">الإعدادات</button>
+    </nav>
+  </header>
 
-    <!-- Dashboard -->
-    <section id="tab-dashboard" class="grid gap-4">
-      <div id="chartsWarning" class="card bg-amber-50 border-amber-200 text-amber-900 hidden">
-        ⚠️ ملاحظة: الرسوم البيانية معطّلة لأن المتصفح لم يحمّل مكتبة Chart.js من الإنترنت. سيعمل التطبيق بشكل طبيعي بدون الرسوم.
-        تأكد أنك متصل بالإنترنت ثم أعد فتح الملف إذا رغبت في رؤية الرسوم.
-      </div>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div class="card"><div class="text-sm text-gray-500">إجمالي الحجوزات</div><div id="kpi-total" class="text-3xl font-bold mt-1">0</div><div class="text-xs text-gray-500 mt-2">إجمالي الكميات: <span id="kpi-qty">0</span></div></div>
-        <div class="card"><div class="text-sm text-gray-500">قيد الانتظار</div><div id="kpi-pending" class="text-3xl font-bold mt-1">0</div></div>
-        <div class="card"><div class="text-sm text-gray-500">مؤكَّد</div><div id="kpi-confirmed" class="text-3xl font-bold mt-1">0</div></div>
-        <div class="card"><div class="text-sm text-gray-500">ملغي</div><div id="kpi-cancelled" class="text-3xl font-bold mt-1">0</div></div>
-      </div>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div class="card">
-          <h3 class="font-semibold mb-2">📊 الكميات حسب الصنف</h3>
-          <canvas id="chartByVariety" height="280"></canvas>
-        </div>
-        <div class="card">
-          <h3 class="font-semibold mb-2">📈 عدد الحجوزات يوميًا</h3>
-          <canvas id="chartByDay" height="280"></canvas>
-        </div>
-        <div class="card lg:col-span-2">
-          <h3 class="font-semibold mb-2">🧁 توزيع الحالات</h3>
-          <div class="flex items-center justify-center"><canvas id="chartStatuses" height="280"></canvas></div>
-        </div>
-      </div>
-    </section>
-
-    <!-- New -->
-    <section id="tab-new" class="hidden">
+  <!-- Dashboard -->
+  <section id="tab-dashboard" class="row hidden">
+    <div id="chartsWarning" class="card bg-amber-50 hidden">⚠️ لم تُحمَّل مكتبة Chart.js؛ سيعمل التطبيق بدون الرسوم.</div>
+    <div id="storageWarning" class="card bg-red-50 hidden">⚠️ تعذّر الحفظ المحلي. ستفقد البيانات عند الإغلاق إن لم تربط ملف JSON.</div>
+    <div class="row cols-4">
+      <div class="card"><div class="muted">عدد الطلبات</div><div id="kpi-orders" style="font-size:26px;font-weight:800">0</div></div>
+      <div class="card"><div class="muted">إجمالي العناصر</div><div id="kpi-items" style="font-size:26px;font-weight:800">0</div></div>
+      <div class="card"><div class="muted">إجمالي الكميات</div><div id="kpi-qty" style="font-size:26px;font-weight:800">0</div></div>
+      <div class="card"><div class="muted">القيمة الإجمالية</div><div id="kpi-amount" style="font-size:26px;font-weight:800">0 دج</div></div>
+    </div>
+    <div class="row cols-2">
       <div class="card">
-        <h3 class="font-semibold mb-3">➕ إضافة حجز جديد</h3>
-        <form id="orderForm" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="card">
-            <h4 class="font-semibold mb-3">👤 معلومات الزبون</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label class="text-sm grid gap-1"><span class="text-gray-600">الاسم الكامل *</span><input id="customerName" /></label>
-              <label class="text-sm grid gap-1"><span class="text-gray-600">الهاتف *</span><input id="phone" /></label>
-              <label class="text-sm grid gap-1"><span class="text-gray-600">المدينة</span><input id="city" /></label>
-              <label class="text-sm grid gap-1"><span class="text-gray-600">العنوان</span><input id="address" /></label>
-            </div>
-          </div>
-          <div class="card">
-            <h4 class="font-semibold mb-3">🌱 تفاصيل الحجز</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label class="text-sm grid gap-1"><span class="text-gray-600">الصنف *</span><input id="variety" placeholder="مثال: Black Madeira" /></label>
-              <label class="text-sm grid gap-1"><span class="text-gray-600">الكمية *</span><input id="quantity" type="number" value="1" min="1" /></label>
-              <label class="text-sm grid gap-1"><span class="text-gray-600">الحالة</span>
-                <select id="status">
-                  <option value="pending">قيد الانتظار</option>
-                  <option value="confirmed">مؤكد</option>
-                  <option value="shipped">مُرسَل</option>
-                  <option value="delivered">تمّ التسليم</option>
-                  <option value="cancelled">ملغي</option>
-                </select>
-              </label>
-              <label class="text-sm grid gap-1"><span class="text-gray-600">طريقة التوصيل</span>
-                <select id="deliveryMethod">
-                  <option value="yalidine_office">مكتب Yalidine</option>
-                  <option value="home">توصيل للمنزل</option>
-                  <option value="pickup">استلام من المشتل</option>
-                </select>
-              </label>
-              <label class="text-sm grid gap-1"><span class="text-gray-600">عربون (دج)</span><input id="depositDZD" type="number" /></label>
-              <label class="text-sm grid gap-1"><span class="text-gray-600">ملاحظات</span><input id="notes" /></label>
-            </div>
-          </div>
-          <div class="md:col-span-2 flex items-center gap-2">
-            <button class="px-4 py-2 rounded-xl text-white" style="background:#111" type="submit">حفظ الحجز</button>
-            <button class="px-4 py-2 rounded-xl border" type="reset">مسح</button>
-          </div>
-        </form>
+        <h3 style="margin:0 0 10px 0">📊 الكميات حسب الصنف</h3>
+        <canvas id="chartByVariety" height="280"></canvas>
       </div>
-    </section>
-
-    <!-- List -->
-    <section id="tab-list" class="hidden grid gap-4">
-      <div class="card flex flex-wrap items-end gap-2">
-        <label class="text-sm grid gap-1"><span class="text-gray-600">بحث</span><input id="filter-q" placeholder="اسم/هاتف/مدينة/صنف"/></label>
-        <label class="text-sm grid gap-1"><span class="text-gray-600">الحالة</span>
-          <select id="filter-status">
-            <option value="all">الكل</option>
-            <option value="pending">قيد الانتظار</option>
-            <option value="confirmed">مؤكد</option>
-            <option value="shipped">مُرسَل</option>
-            <option value="delivered">تمّ التسليم</option>
-            <option value="cancelled">ملغي</option>
-          </select>
-        </label>
-        <label class="text-sm grid gap-1"><span class="text-gray-600">الصنف</span>
-          <select id="filter-variety"><option value="all">الكل</option></select>
-        </label>
-        <button id="btn-export-selected" class="px-3 py-2 rounded-xl border">تصدير المحدد</button>
+      <div class="card">
+        <h3 style="margin:0 0 10px 0">📈 عدد الطلبات يوميًا</h3>
+        <canvas id="chartByDay" height="280"></canvas>
       </div>
+      <div class="card" style="grid-column:1/-1">
+        <h3 style="margin:0 0 10px 0">🧁 توزيع الحالات</h3>
+        <div style="display:flex;justify-content:center"><canvas id="chartStatuses" height="280"></canvas></div>
+      </div>
+    </div>
+  </section>
 
-      <div class="card tableFixHead">
-        <table class="min-w-full text-sm" id="ordersTable">
-          <thead>
-            <tr class="bg-gray-50">
-              <th class="p-3 text-right"><input id="checkAll" type="checkbox" /></th>
-              <th class="p-3 text-right">التاريخ</th>
-              <th class="p-3 text-right">الاسم</th>
-              <th class="p-3 text-right">الهاتف</th>
-              <th class="p-3 text-right">الصنف</th>
-              <th class="p-3 text-right">الكمية</th>
-              <th class="p-3 text-right">الحالة</th>
-              <th class="p-3 text-right">المدينة</th>
-              <th class="p-3 text-right">ملاحظات</th>
-              <th class="p-3 text-right">إجراءات</th>
-            </tr>
-          </thead>
-          <tbody id="ordersBody"></tbody>
+  <!-- New -->
+  <section id="tab-new" class="row">
+    <div class="card">
+      <h3 style="margin:0 0 10px 0">➕ إضافة حجز جديد (يدعم عدة أصناف)</h3>
+      <form id="orderForm" class="row cols-2">
+        <div class="card">
+          <h4 style="margin:0 0 10px 0">👤 معلومات الزبون</h4>
+          <div class="row cols-2">
+            <label class="muted">الاسم الكامل *<input id="customerName" required></label>
+            <label class="muted">الهاتف *<input id="phone" inputmode="numeric" pattern="\d+" required></label>
+            <label class="muted">المدينة<input id="city"></label>
+            <label class="muted">العنوان<input id="address"></label>
+          </div>
+          <div class="muted">الأرقام فقط مسموح بها للهاتف؛ يتم إزالة الأحرف تلقائيًا.</div>
+          <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap">
+            <button id="btn-link-orders-json" type="button" class="btn">🔗 ربط ملف orders.json</button>
+            <span class="muted">إن ربطت ملف JSON سيتم الحفظ فيه مباشرة.</span>
+          </div>
+        </div>
+        <div class="card">
+          <h4 style="margin:0 0 10px 0">🌱 عناصر الطلب</h4>
+          <div class="row cols-2">
+            <label class="muted">الصنف *<select id="varietySelect"></select></label>
+            <label class="muted">الكمية *<input id="itemQty" type="number" value="1" min="1"></label>
+            <label class="muted">السعر للوحدة (دج)<input id="itemPrice" type="number" min="0" step="1" placeholder="يمتلئ تلقائيًا"></label>
+            <div style="align-self:end"><button id="addItem" type="button" class="btn">إضافة عنصر</button></div>
+          </div>
+          <div class="muted">تستورد الأصناف تلقائيًا من <code>varieties.json</code> (إن وُجد). وإلا تُستخدم النسخة المخزنة محليًا.</div>
+          <div style="margin-top:8px; overflow:auto">
+            <table id="itemsTable">
+              <thead><tr><th>#</th><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><th>—</th></tr></thead>
+              <tbody id="itemsBody"></tbody>
+              <tfoot><tr style="background:#fafafa;font-weight:600"><td colspan="4">الإجمالي</td><td id="itemsTotal">0 دج</td><td></td></tr></tfoot>
+            </table>
+          </div>
+          <div class="row cols-2" style="margin-top:8px">
+            <label class="muted">الحالة
+              <select id="status">
+                <option value="pending">قيد الانتظار</option>
+                <option value="confirmed">مؤكد</option>
+                <option value="shipped">مُرسَل</option>
+                <option value="delivered">تمّ التسليم</option>
+                <option value="cancelled">ملغي</option>
+              </select>
+            </label>
+            <label class="muted">طريقة التوصيل
+              <select id="deliveryMethod">
+                <option value="yalidine_office">مكتب Yalidine</option>
+                <option value="home">توصيل للمنزل</option>
+                <option value="pickup">استلام من المشتل</option>
+              </select>
+            </label>
+            <label class="muted">عربون (دج)<input id="depositDZD" type="number" min="0" step="1"></label>
+            <label class="muted">ملاحظات<input id="notes"></label>
+          </div>
+        </div>
+        <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center">
+          <button class="btn primary" type="submit">حفظ الحجز</button>
+          <button class="btn" type="reset" id="resetForm">مسح</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- List -->
+  <section id="tab-list" class="row hidden">
+    <div class="card" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end">
+      <label class="muted">بحث<input id="filter-q" placeholder="اسم/هاتف/مدينة/صنف"></label>
+      <label class="muted">الحالة
+        <select id="filter-status">
+          <option value="all">الكل</option>
+          <option value="pending">قيد الانتظار</option>
+          <option value="confirmed">مؤكد</option>
+          <option value="shipped">مُرسَل</option>
+          <option value="delivered">تمّ التسليم</option>
+          <option value="cancelled">ملغي</option>
+        </select>
+      </label>
+      <button id="btn-export-selected" class="btn">تصدير المحدد</button>
+    </div>
+    <div class="card" style="overflow:auto;max-height:60vh">
+      <table id="ordersTable">
+        <thead>
+          <tr>
+            <th><input id="checkAll" type="checkbox"></th>
+            <th>التاريخ</th>
+            <th>الاسم</th>
+            <th>الهاتف</th>
+            <th>العناصر</th>
+            <th>الإجمالي (دج)</th>
+            <th>الحالة</th>
+            <th>المدينة</th>
+            <th>ملاحظات</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Settings -->
+  <section id="tab-settings" class="row hidden">
+    <div class="card row">
+      <h3 style="margin:0">💾 النسخ الاحتياطي</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button id="btn-export-all" class="btn">تصدير كل البيانات JSON</button>
+        <button id="btn-import" class="btn">استيراد JSON</button>
+        <input id="fileImport" type="file" accept="application/json" hidden>
+      </div>
+      <p class="muted">لأفضل ثبات: اربط ملف <code>orders.json</code> واحفظ مباشرة في الملف (Chrome/Edge فقط حاليًا). أما Safari/Firefox فيستعمل التخزين المحلي مع التصدير/الاستيراد.</p>
+    </div>
+    <div class="card row">
+      <h3 style="margin:0">🌱 إدارة الأصناف والأسعار</h3>
+      <p class="muted">يتم تحميل الأصناف من <code>varieties.json</code>؛ يمكنك تعديل الملف مباشرة.</p>
+      <div style="overflow:auto">
+        <table id="varietiesTable">
+          <thead><tr><th>الصنف</th><th>السعر (دج)</th><th>—</th></tr></thead>
+          <tbody id="varietiesBody"></tbody>
         </table>
       </div>
-
-      <div class="card">
-        <h3 class="font-semibold mb-2">⚙️ عمليات منفصلة</h3>
-        <ul class="list-disc pr-5 text-sm text-gray-700 space-y-1">
-          <li>إضافة: كل حجز يُسجّل كسطر مستقل بمعرّف <code>id</code> فريد.</li>
-          <li>تعديل: تحديث نفس السجل دون إنشاء سجل جديد.</li>
-          <li>تغيير حالة: عملية مستقلة لا تغيّر بقية الحقول.</li>
-          <li>حذف: يزيل السجل نهائيًا بعد تأكيد.</li>
-          <li>تصدير/استيراد: JSON للمزامنة اليدوية بين الأجهزة.</li>
-        </ul>
-      </div>
-
-      <div class="fixed bottom-4 left-1/2 -translate-x-1/2">
-        <div class="flex gap-2 bg-white/90 backdrop-blur border rounded-2xl p-2 shadow">
-          <button class="px-3 py-2 rounded-xl border" id="btn-send-yalidine">🚚 إرسال لــ Yalidine (قريبًا)</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Settings -->
-    <section id="tab-settings" class="hidden grid gap-4">
-      <div class="card grid gap-3">
-        <h3 class="font-semibold">💾 النسخ الاحتياطي</h3>
-        <div class="flex flex-wrap gap-2">
-          <button id="btn-export-all" class="px-4 py-2 rounded-xl border">تصدير كل البيانات JSON</button>
-          <button id="btn-import" class="px-4 py-2 rounded-xl border">استيراد JSON</button>
-          <input id="fileImport" type="file" accept="application/json" hidden />
-        </div>
-        <p class="text-sm text-gray-600">البيانات تُحفَظ محليًا في المتصفح (LocalStorage). للتنقل بين الأجهزة، استعمل التصدير والاستيراد.</p>
-      </div>
-      <div class="card grid gap-3">
-        <h3 class="font-semibold">🚚 إعداد تكامل Yalidine (لاحقًا)</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl">
-          <label class="text-sm grid gap-1"><span class="text-gray-600">API Token</span><input id="yalidineToken" /></label>
-          <label class="text-sm grid gap-1"><span class="text-gray-600">Endpoint الأساسي</span><input id="yalidineBase" placeholder="مثال: https://api.yalidine.com/v1" /></label>
-        </div>
-        <p class="text-sm text-gray-600">بعد ضبط التوثيق سنفعّل الإرسال المباشر لكل طلب.</p>
-      </div>
-    </section>
-
-    <footer class="py-6 text-center text-xs text-gray-500">نسخة محلية (Local‑First). احفظ ملف JSON دوريًا كنسخة احتياطية.</footer>
-  </div>
-
-<script>
-(function(){
-  const STORAGE_KEY = 'figPreordersV1';
-  const STATUS_OPTIONS = ['pending','confirmed','shipped','delivered','cancelled'];
-
-  // Tabs
-  const tabs = ['dashboard','new','list','settings'];
-  const tabButtons = document.querySelectorAll('[data-tab]');
-  tabButtons.forEach(btn=>btn.addEventListener('click',()=>showTab(btn.dataset.tab)));
-  function showTab(id){
-    tabs.forEach(t=>{
-      const sec = document.getElementById('tab-'+t);
-      if(!sec) return;
-      if(t===id){ sec.classList.remove('hidden'); } else { sec.classList.add('hidden'); }
-    });
-    if(id==='list') renderList();
-    if(id==='dashboard') renderCharts();
-  }
-  showTab('dashboard');
-
-  // Storage helpers
-  function load(){
-    try{ const raw = localStorage.getItem(STORAGE_KEY); return raw? JSON.parse(raw): []; }catch(e){ return []; }
-  }
-  function save(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
-  function uid(){ return (crypto && crypto.randomUUID)? crypto.randomUUID(): 'id_'+Date.now()+'_'+Math.random().toString(16).slice(2); }
-
-  // State
-  let orders = load();
-  let selectedIds = new Set();
-
-  // Form handlers
-  const form = document.getElementById('orderForm');
-  form.addEventListener('submit', (e)=>{
-    e.preventDefault();
-    const o = {
-      id: uid(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      customerName: document.getElementById('customerName').value.trim(),
-      phone: document.getElementById('phone').value.trim(),
-      city: document.getElementById('city').value.trim(),
-      address: document.getElementById('address').value.trim(),
-      variety: document.getElementById('variety').value.trim(),
-      quantity: Number(document.getElementById('quantity').value || 1),
-      status: document.getElementById('status').value,
-      deliveryMethod: document.getElementById('deliveryMethod').value,
-      depositDZD: document.getElementById('depositDZD').value,
-      notes: document.getElementById('notes').value.trim(),
-    };
-    if(!o.customerName || !o.phone || !o.variety){ alert('أكمل الاسم والهاتف والصنف'); return; }
-    if(o.quantity <= 0){ alert('الكمية يجب أن تكون أكبر من صفر'); return; }
-    orders = [o, ...orders];
-    save(orders);
-    form.reset();
-    refreshAll();
-    showTab('list');
-  });
-
-  // Filters
-  const fQ = document.getElementById('filter-q');
-  const fStatus = document.getElementById('filter-status');
-  const fVariety = document.getElementById('filter-variety');
-  [fQ,fStatus,fVariety].forEach(el=> el.addEventListener('input', renderList));
-
-  // Export / Import
-  document.getElementById('btn-export-all').addEventListener('click', ()=>{
-    downloadJSON(`fig-preorders-${new Date().toISOString().slice(0,10)}.json`, orders);
-  });
-  document.getElementById('btn-export-selected').addEventListener('click', ()=>{
-    const sel = orders.filter(o=>selectedIds.has(o.id));
-    if(sel.length===0) return alert('اختر على الأقل عنصرًا واحدًا.');
-    downloadJSON(`fig-preorders-selection-${Date.now()}.json`, sel);
-  });
-  const fileInput = document.getElementById('fileImport');
-  document.getElementById('btn-import').addEventListener('click', ()=>fileInput.click());
-  fileInput.addEventListener('change', (e)=>{
-    const file = e.target.files?.[0]; if(!file) return;
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      try{
-        const data = JSON.parse(String(reader.result));
-        if(!Array.isArray(data)) throw new Error('صيغة غير صحيحة');
-        orders = data;
-        save(orders);
-        refreshAll();
-        alert('تم الاستيراد بنجاح');
-      }catch(err){ alert('فشل الاستيراد: '+err.message); }
-    };
-    reader.readAsText(file);
-  });
-
-  // Yalidine (placeholder)
-  document.getElementById('btn-send-yalidine').addEventListener('click', ()=>{
-    alert('زر تجريبي — سنفعّل الإرسال الفعلي بعد ضبط API Token و Endpoint في الإعدادات ومطابقة مخطط الحمولة.');
-  });
-
-  // List rendering
-  function renderList(){
-    const tbody = document.getElementById('ordersBody');
-    tbody.innerHTML = '';
-    selectedIds = new Set();
-
-    // varieties for filter
-    const allVarieties = Array.from(new Set(orders.map(o=>o.variety).filter(Boolean))).sort();
-    const currentVarietyOptions = Array.from(fVariety.options).map(o=>o.value);
-    // refresh variety filter options if changed
-    if(allVarieties.join('|') !== currentVarietyOptions.filter(v=>v!=='all').join('|')){
-      fVariety.innerHTML = '<option value="all">الكل</option>' + allVarieties.map(v=>`<option value="${v}">${v}</option>`).join('');
-    }
-
-    const q = (fQ.value||'').toLowerCase().trim();
-    const st = fStatus.value;
-    const varf = fVariety.value;
-
-    const filtered = orders.filter(o=>{
-      if(q){
-        const hay = `${o.customerName} ${o.phone} ${o.city} ${o.address} ${o.variety} ${o.notes}`.toLowerCase();
-        if(!hay.includes(q)) return false;
-      }
-      if(st!=='all' && o.status!==st) return false;
-      if(varf!=='all' && o.variety!==varf) return false;
-      return true;
-    });
-
-    filtered.forEach(o=>{
-      const tr = document.createElement('tr');
-      tr.className = 'border-t hover:bg-gray-50';
-      tr.innerHTML = `
-        <td class="p-3 align-top"><input type="checkbox" data-id="${o.id}"></td>
-        <td class="p-3 align-top whitespace-nowrap">${new Date(o.createdAt).toLocaleString('ar-DZ')}</td>
-        <td class="p-3 align-top">${escapeHtml(o.customerName)}</td>
-        <td class="p-3 align-top">${escapeHtml(o.phone)}</td>
-        <td class="p-3 align-top">${escapeHtml(o.variety)}</td>
-        <td class="p-3 align-top">${o.quantity}</td>
-        <td class="p-3 align-top">
-          <select class="px-2 py-1 border rounded" data-status="${o.id}">
-            ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${statusLabel(s)}</option>`).join('')}
-          </select>
-        </td>
-        <td class="p-3 align-top">${escapeHtml(o.city||'')}</td>
-        <td class="p-3 align-top max-w-[22ch] truncate" title="${escapeHtml(o.notes||'')}">${escapeHtml(o.notes||'')}</td>
-        <td class="p-3 align-top">
-          <div class="flex gap-2">
-            <button class="px-2 py-1 rounded border" data-edit="${o.id}">تعديل</button>
-            <button class="px-2 py-1 rounded border text-red-600" data-del="${o.id}">حذف</button>
-          </div>
-        </td>`;
-      tbody.appendChild(tr);
-    });
-
-    // bulk check
-    const checkAll = document.getElementById('checkAll');
-    checkAll.checked = false;
-    checkAll.onchange = (e)=>{
-      const checks = tbody.querySelectorAll('input[type="checkbox"][data-id]');
-      checks.forEach(ch=>{ ch.checked = e.target.checked; if(e.target.checked){selectedIds.add(ch.dataset.id);} else {selectedIds.delete(ch.dataset.id);} });
-    };
-
-    // row events
-    tbody.querySelectorAll('input[type="checkbox"][data-id]').forEach(ch=>{
-      ch.addEventListener('change', (e)=>{
-        if(e.target.checked) selectedIds.add(ch.dataset.id); else selectedIds.delete(ch.dataset.id);
-      });
-    });
-
-    tbody.querySelectorAll('button[data-del]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        if(!confirm('حذف هذا الحجز نهائيًا؟')) return;
-        orders = orders.filter(o=>o.id!==btn.dataset.del);
-        save(orders); refreshAll();
-      });
-    });
-
-    tbody.querySelectorAll('button[data-edit]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const o = orders.find(x=>x.id===btn.dataset.edit); if(!o) return;
-        // fill form and switch to new tab (edit mode)
-        showTab('new');
-        document.getElementById('customerName').value = o.customerName;
-        document.getElementById('phone').value = o.phone;
-        document.getElementById('city').value = o.city||'';
-        document.getElementById('address').value = o.address||'';
-        document.getElementById('variety').value = o.variety;
-        document.getElementById('quantity').value = o.quantity;
-        document.getElementById('status').value = o.status;
-        document.getElementById('deliveryMethod').value = o.deliveryMethod;
-        document.getElementById('depositDZD').value = o.depositDZD||'';
-        document.getElementById('notes').value = o.notes||'';
-        // hijack submit to update instead of create once
-        const once = (ev)=>{
-          ev.preventDefault();
-          const idx = orders.findIndex(x=>x.id===o.id);
-          if(idx>-1){
-            orders[idx] = {
-              ...o,
-              updatedAt: new Date().toISOString(),
-              customerName: document.getElementById('customerName').value.trim(),
-              phone: document.getElementById('phone').value.trim(),
-              city: document.getElementById('city').value.trim(),
-              address: document.getElementById('address').value.trim(),
-              variety: document.getElementById('variety').value.trim(),
-              quantity: Number(document.getElementById('quantity').value || 1),
-              status: document.getElementById('status').value,
-              deliveryMethod: document.getElementById('deliveryMethod').value,
-              depositDZD: document.getElementById('depositDZD').value,
-              notes: document.getElementById('notes').value.trim(),
-            };
-            save(orders); refreshAll(); showTab('list');
-          }
-          form.removeEventListener('submit', once);
-        };
-        form.addEventListener('submit', once);
-      });
-    });
-
-    tbody.querySelectorAll('select[data-status]').forEach(sel=>{
-      sel.addEventListener('change', ()=>{
-        const o = orders.find(x=>x.id===sel.dataset.status); if(!o) return;
-        o.status = sel.value; o.updatedAt = new Date().toISOString();
-        save(orders); refreshAll();
-      });
-    });
-  }
-
-  // KPIs + Charts
-  let chartVariety, chartDay, chartStatus;
-  function renderKPIs(){
-    const total = orders.length;
-    const qtyTotal = orders.reduce((s,o)=> s + Number(o.quantity||0), 0);
-    const byStatus = STATUS_OPTIONS.reduce((acc,s)=> (acc[s]=orders.filter(o=>o.status===s).length, acc), {});
-    document.getElementById('kpi-total').textContent = total;
-    document.getElementById('kpi-qty').textContent = qtyTotal;
-    document.getElementById('kpi-pending').textContent = byStatus.pending||0;
-    document.getElementById('kpi-confirmed').textContent = byStatus.confirmed||0;
-    document.getElementById('kpi-cancelled').textContent = byStatus.cancelled||0;
-  }
-  function renderCharts(){
-    // KPIs تعمل دائمًا
-    renderKPIs();
-
-    // إذا لم تتوفر مكتبة Chart.js (انقطاع إنترنت/حجب)، نتوقف عن رسم الرسوم ونُظهر تنبيهًا
-    if(!window.Chart){
-      const warn = document.getElementById('chartsWarning');
-      if(warn) warn.classList.remove('hidden');
-      return;
-    }
-
-    try {
-      // by variety (bar)
-      const mapV = new Map();
-      orders.forEach(o=>{ if(!o.variety) return; mapV.set(o.variety, (mapV.get(o.variety)||0) + Number(o.quantity||0)); });
-      const labelsV = Array.from(mapV.keys());
-      const dataV = Array.from(mapV.values());
-      if(chartVariety) chartVariety.destroy();
-      chartVariety = new Chart(document.getElementById('chartByVariety'), {
-        type: 'bar', data: { labels: labelsV, datasets: [{ label:'الكمية', data: dataV }] }, options:{ responsive:true, maintainAspectRatio:false }
-      });
-
-      // by day (line)
-      const mapD = new Map();
-      orders.forEach(o=>{ const d = new Date(o.createdAt); const key = new Date(d.getFullYear(), d.getMonth(), d.getDate()).toISOString(); mapD.set(key,(mapD.get(key)||0)+1); });
-      const entriesD = Array.from(mapD.entries()).sort((a,b)=> new Date(a[0]) - new Date(b[0]));
-      const labelsD = entriesD.map(([k])=> new Date(k).toLocaleDateString('ar-DZ'));
-      const dataD = entriesD.map(([_,v])=> v);
-      if(chartDay) chartDay.destroy();
-      chartDay = new Chart(document.getElementById('chartByDay'), {
-        type: 'line', data: { labels: labelsD, datasets: [{ label:'عدد الحجوزات', data: dataD, tension: .3 }] }, options:{ responsive:true, maintainAspectRatio:false }
-      });
-
-      // statuses (pie)
-      const counts = STATUS_OPTIONS.map(s=> orders.filter(o=>o.status===s).length);
-      const labelsS = STATUS_OPTIONS.map(statusLabel);
-      if(chartStatus) chartStatus.destroy();
-      chartStatus = new Chart(document.getElementById('chartStatuses'), {
-        type: 'pie', data: { labels: labelsS, datasets: [{ data: counts }] }, options:{ responsive:true, maintainAspectRatio:false }
-      });
-    } catch(err){
-      const warn = document.getElementById('chartsWarning');
-      if(warn){ warn.textContent = '⚠️ تعذّر رسم الرسوم البيانية: '+ err.message; warn.classList.remove('hidden'); }
-    }
-  }
-
-  function refreshAll(){ renderList(); renderCharts(); }
-
-  // Helpers
-  function statusLabel(v){
-    return {
-      pending: 'قيد الانتظار', confirmed: 'مؤكد', shipped: 'مُرسَل', delivered: 'تمّ التسليم', cancelled: 'ملغي'
-    }[v] || v;
-  }
-  function downloadJSON(filename, data){
-    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-  }
-  function escapeHtml(str){ return String(str).replace(/[&<>"']/g, s=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[s])); }
-
-  // Initial
-  refreshAll();
-})();
-</script>
+    </div>
+  </section>
+</div>
+<script src="app.js"></script>
 </body>
 </html>
