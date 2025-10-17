@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>حجوزات أصناف التين — متعدد الأصناف</title>
+  <title>حجوزات أصناف التين — متعدد الأصناف (تحرير الأصناف داخل التطبيق)</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root { --b:#e5e7eb; --bg:#f3f4f6; --fg:#111; --muted:#6b7280; }
@@ -39,7 +39,7 @@
   <!-- Dashboard -->
   <section id="tab-dashboard" class="row hidden">
     <div id="chartsWarning" class="card bg-amber-50 hidden">⚠️ لم تُحمَّل مكتبة Chart.js؛ سيعمل التطبيق بدون الرسوم.</div>
-    <div id="storageWarning" class="card bg-red-50 hidden">⚠️ تعذّر الحفظ المحلي. ستفقد البيانات عند الإغلاق إن لم تربط ملف JSON.</div>
+    <div id="storageWarning" class="card bg-red-50 hidden">⚠️ تعذّر الحفظ المحلي. اربط ملفات JSON للحفظ المباشر.</div>
     <div class="row cols-4">
       <div class="card"><div class="muted">عدد الطلبات</div><div id="kpi-orders" style="font-size:26px;font-weight:800">0</div></div>
       <div class="card"><div class="muted">إجمالي العناصر</div><div id="kpi-items" style="font-size:26px;font-weight:800">0</div></div>
@@ -89,7 +89,6 @@
             <label class="muted">السعر للوحدة (دج)<input id="itemPrice" type="number" min="0" step="1" placeholder="يمتلئ تلقائيًا"></label>
             <div style="align-self:end"><button id="addItem" type="button" class="btn">إضافة عنصر</button></div>
           </div>
-          <div class="muted">تستورد الأصناف تلقائيًا من <code>varieties.json</code> (إن وُجد). وإلا تُستخدم النسخة المخزنة محليًا.</div>
           <div style="margin-top:8px; overflow:auto">
             <table id="itemsTable">
               <thead><tr><th>#</th><th>الصنف</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><th>—</th></tr></thead>
@@ -166,17 +165,25 @@
   <!-- Settings -->
   <section id="tab-settings" class="row hidden">
     <div class="card row">
-      <h3 style="margin:0">💾 النسخ الاحتياطي</h3>
+      <h3 style="margin:0">💾 النسخ الاحتياطي للطلبات</h3>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button id="btn-export-all" class="btn">تصدير كل البيانات JSON</button>
+        <button id="btn-export-all" class="btn">تصدير كل الطلبات JSON</button>
         <button id="btn-import" class="btn">استيراد JSON</button>
         <input id="fileImport" type="file" accept="application/json" hidden>
+        <button id="btn-link-orders-json" class="btn">🔗 ربط orders.json</button>
       </div>
-      <p class="muted">لأفضل ثبات: اربط ملف <code>orders.json</code> واحفظ مباشرة في الملف (Chrome/Edge فقط حاليًا). أما Safari/Firefox فيستعمل التخزين المحلي مع التصدير/الاستيراد.</p>
     </div>
+
     <div class="card row">
-      <h3 style="margin:0">🌱 إدارة الأصناف والأسعار</h3>
-      <p class="muted">يتم تحميل الأصناف من <code>varieties.json</code>؛ يمكنك تعديل الملف مباشرة.</p>
+      <div style="display:flex;align-items:center;gap:8px;justify-content:space-between;flex-wrap:wrap">
+        <h3 style="margin:0">🌱 إدارة الأصناف والأسعار (تحرير داخل التطبيق)</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button id="btn-link-varieties-json" class="btn">🔗 ربط varieties.json</button>
+          <button id="saveVarieties" class="btn primary">حفظ الأصناف</button>
+          <button id="addVariety" class="btn">إضافة صنف</button>
+        </div>
+      </div>
+      <p class="muted">يمكنك الإضافة/التعديل/الحذف هنا. إذا ربطت <code>varieties.json</code> (Chrome/Edge) سيتم الحفظ مباشرة في الملف؛ وإلا فسيُحفظ محليًا.</p>
       <div style="overflow:auto">
         <table id="varietiesTable">
           <thead><tr><th>الصنف</th><th>السعر (دج)</th><th>—</th></tr></thead>

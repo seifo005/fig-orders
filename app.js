@@ -1,6 +1,6 @@
 (() => {
-  const STORAGE_KEY = 'figPreordersV3_Orders';
-  const VARS_KEY = 'figVarietiesV3';
+  const STORAGE_KEY = 'figPreordersV4_Orders';
+  const VARS_KEY = 'figVarietiesV4';
   const STATUS_OPTIONS = ['pending','confirmed','shipped','delivered','cancelled'];
 
   const $ = (id) => document.getElementById(id);
@@ -10,15 +10,58 @@
   function safeGet(key, fallback){ try{ const v=localStorage.getItem(key); return v? JSON.parse(v): fallback; }catch(e){ return fallback; } }
   function safeSet(key,val){ try{ localStorage.setItem(key, JSON.stringify(val)); return true; } catch(e){ $('#storageWarning')?.classList.remove('hidden'); return false; } }
 
+  // ===== الأصناف (مع إمكانية الربط بملف varieties.json) =====
   let varieties = [];
+  let varietiesHandle = null; // File System Access API handle
+
+  async function linkVarietiesJson(){
+    if(!window.showOpenFilePicker){ alert('ربط الملف متاح على Chrome/Edge. على المتصفحات الأخرى سيُحفظ محليًا فقط.'); return; }
+    try{
+      const [handle] = await window.showOpenFilePicker({ types:[{description:'JSON', accept:{'application/json':['.json']}}] });
+      const perm = await handle.requestPermission({mode:'readwrite'});
+      if(perm !== 'granted'){ alert('لم تُمنَح صلاحية الكتابة على varieties.json'); return; }
+      varietiesHandle = handle;
+      await loadVarietiesFromFile();
+      alert('تم ربط varieties.json وسيُحفَظ داخله مباشرة.');
+    }catch(e){ console.error(e); }
+  }
+
+  async function loadVarietiesFromFile(){
+    if(!varietiesHandle) return;
+    const f = await varietiesHandle.getFile();
+    const text = await f.text();
+    try{
+      const parsed = JSON.parse(text);
+      if(Array.isArray(parsed)){
+        varieties = parsed.map(v => typeof v==='string'? {name:v, price:0} : v);
+        safeSet(VARS_KEY, varieties);
+      }
+    }catch(e){ /* ignore */ }
+    populateVarietySelect();
+    renderVarietiesEditor();
+  }
+
+  async function saveVarietiesToFile(){
+    if(!varietiesHandle) return false;
+    const writable = await varietiesHandle.createWritable();
+    await writable.write(new Blob([JSON.stringify(varieties, null, 2)], {type:'application/json'}));
+    await writable.close();
+    return true;
+  }
+
   async function loadVarieties(){
+    // أولاً: حاول fetch من varieties.json إن كنا عبر http(s)
     try{
       const res = await fetch('varieties.json', {cache:'no-store'});
-      if(res.ok){ varieties = await res.json(); safeSet(VARS_KEY, varieties); }
+      if(res.ok){ varieties = await res.json(); }
       else { varieties = safeGet(VARS_KEY, []); }
     }catch{ varieties = safeGet(VARS_KEY, []); }
     if(!Array.isArray(varieties)) varieties=[];
-    varieties = varieties.map(v => typeof v === 'string' ? ({name:v, price:0}) : v);
+    varieties = varieties.map(v => typeof v==='string' ? ({name:v, price:0}) : v);
+    if(varieties.length===0){
+      varieties = [{name:'العبيد',price:0},{name:'العامري',price:0}];
+    }
+    safeSet(VARS_KEY, varieties);
     populateVarietySelect();
     renderVarietiesEditor();
   }
@@ -29,48 +72,95 @@
     if(varieties[0]) $('itemPrice').value = varieties[0].price || 0;
   }
 
-  // FS Access API
-  let fileHandle = null;
+  function renderVarietiesEditor(){
+    const body = $('varietiesBody'); if(!body) return; body.innerHTML='';
+    varieties.forEach((v, idx)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input data-vname="${idx}" value="${esc(v.name)}"></td>
+        <td><input data-vprice="${idx}" type="number" min="0" step="1" value="${v.price||0}"></td>
+        <td><button class="btn" data-vdel="${idx}">حذف</button></td>`;
+      body.appendChild(tr);
+    });
+  }
+
+  $('addVariety').addEventListener('click', ()=>{
+    varieties.push({name:'صنف جديد', price:0});
+    renderVarietiesEditor(); populateVarietySelect();
+  });
+
+  $('saveVarieties').addEventListener('click', async ()=>{
+    const names = document.querySelectorAll('[data-vname]');
+    const next = [];
+    names.forEach((el)=>{
+      const idx = Number(el.getAttribute('data-vname'));
+      const name = el.value.trim();
+      const price = Number(document.querySelector(`[data-vprice="${idx}"]`).value || 0);
+      if(name) next.push({name, price});
+    });
+    varieties = next;
+    safeSet(VARS_KEY, varieties);
+    populateVarietySelect();
+    renderVarietiesEditor();
+    let ok = true;
+    if(varietiesHandle){
+      try{ ok = await saveVarietiesToFile(); }catch(e){ ok = false; console.error(e); }
+    }
+    alert(ok ? 'تم حفظ الأصناف' : 'تم حفظ الأصناف محليًا فقط (اربط varieties.json للحفظ داخل الملف).');
+  });
+
+  $('varietiesBody').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-vdel]'); if(!btn) return;
+    const idx = Number(btn.getAttribute('data-vdel'));
+    varieties.splice(idx,1);
+    renderVarietiesEditor(); populateVarietySelect();
+  });
+
+  // ===== الطلبات (مع خيار ربط orders.json) =====
+  let orders = safeGet(STORAGE_KEY, []);
+  let ordersHandle = null;
+
   async function linkOrdersJson(){
-    if(!window.showOpenFilePicker){ alert('هذه الميزة مدعومة في Chrome/Edge. استخدم التصدير/الاستيراد في المتصفحات الأخرى.'); return; }
+    if(!window.showOpenFilePicker){ alert('هذه الميزة مدعومة على Chrome/Edge. استخدم التصدير/الاستيراد للمتصفحات الأخرى.'); return; }
     try{
-      const [handle] = await window.showOpenFilePicker({ types:[{ description:'JSON', accept:{'application/json':['.json']} }] });
+      const [handle] = await window.showOpenFilePicker({ types:[{description:'JSON', accept:{'application/json':['.json']}}] });
       const perm = await handle.requestPermission({mode:'readwrite'});
-      if(perm !== 'granted'){ alert('لم تُمنَح صلاحية الكتابة.'); return; }
-      fileHandle = handle;
+      if(perm !== 'granted'){ alert('لم تُمنَح صلاحية الكتابة على orders.json'); return; }
+      ordersHandle = handle;
       await loadOrdersFromFile();
-      alert('تم ربط الملف. سيتم الحفظ داخله.');
+      alert('تم ربط orders.json وسيُحفَظ داخله مباشرة.');
     }catch(e){ console.error(e); }
   }
+
   async function loadOrdersFromFile(){
-    if(!fileHandle) return;
-    const f = await fileHandle.getFile();
+    if(!ordersHandle) return;
+    const f = await ordersHandle.getFile();
     const text = await f.text();
-    let parsed = [];
-    try{ parsed = JSON.parse(text); }catch{ parsed = []; }
-    if(!Array.isArray(parsed)) parsed = [];
-    orders = parsed;
+    try{
+      const parsed = JSON.parse(text);
+      if(Array.isArray(parsed)) orders = parsed;
+    }catch(e){ /* ignore */ }
     renderAll();
   }
+
   async function saveOrdersToFile(){
-    if(!fileHandle) return false;
-    const writable = await fileHandle.createWritable();
+    if(!ordersHandle) return false;
+    const writable = await ordersHandle.createWritable();
     await writable.write(new Blob([JSON.stringify(orders, null, 2)], {type:'application/json'}));
     await writable.close();
     return true;
   }
 
-  let orders = safeGet(STORAGE_KEY, []);
   async function commitOrders(){
     let ok = true;
-    if(fileHandle){
+    if(ordersHandle){
       try{ ok = await saveOrdersToFile(); }catch(e){ ok=false; console.error(e); }
     }
     if(!ok) safeSet(STORAGE_KEY, orders);
     else safeSet(STORAGE_KEY, orders);
   }
 
-  // Draft items
+  // ===== عناصر الطلب في النموذج =====
   let draftItems = [];
   function addDraftItem(){
     const variety = $('varietySelect').value;
@@ -93,6 +183,7 @@
   }
   function resetDraft(){ draftItems=[]; renderDraftItems(); }
 
+  // ===== حفظ الطلب =====
   async function submitOrder(e){
     e.preventDefault();
     const customerName = $('customerName').value.trim();
@@ -123,6 +214,7 @@
     renderAll(); showTab('list');
   }
 
+  // ===== قائمة الطلبات =====
   function renderList(){
     const tbody = $('ordersBody'); tbody.innerHTML='';
     const q = ($('filter-q').value||'').toLowerCase().trim();
@@ -208,7 +300,7 @@
     };
   }
 
-  // KPIs + Charts
+  // ===== مؤشرات ورسوم =====
   let chartVariety, chartDay, chartStatus;
   function renderKPIs(){
     const totalOrders = orders.length;
@@ -240,15 +332,7 @@
     chartStatus = new Chart($('#chartStatuses'), { type:'pie', data:{labels:labelsS, datasets:[{data:counts}]}, options:{responsive:true, maintainAspectRatio:false} });
   }
 
-  function renderVarietiesEditor(){
-    const body = $('varietiesBody'); if(!body) return; body.innerHTML='';
-    varieties.forEach((v)=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${esc(v.name)}</td><td>${v.price||0}</td><td class="muted">عدّل الملف varieties.json</td>`;
-      body.appendChild(tr);
-    });
-  }
-
+  // ===== تبويبات وأحداث عامة =====
   const tabs=['dashboard','new','list','settings'];
   document.querySelectorAll('[data-tab]').forEach(btn=> btn.addEventListener('click', ()=> showTab(btn.dataset.tab)));
   function showTab(id){
@@ -273,6 +357,7 @@
   $('orderForm').addEventListener('submit', submitOrder);
   $('resetForm').addEventListener('click', resetDraft);
   $('btn-link-orders-json').addEventListener('click', linkOrdersJson);
+  $('btn-link-varieties-json').addEventListener('click', linkVarietiesJson);
   $('filter-q').addEventListener('input', renderList);
   $('filter-status').addEventListener('input', renderList);
   $('btn-export-all').addEventListener('click', ()=> downloadJSON(`fig-preorders-${new Date().toISOString().slice(0,10)}.json`, orders));
@@ -284,21 +369,20 @@
     }; reader.readAsText(file);
   });
 
+  // Helpers
   const uid = () => (crypto && crypto.randomUUID)? crypto.randomUUID(): 'id_'+Date.now()+'_'+Math.random().toString(16).slice(2);
   const statusLabel = (v) => ({ pending:'قيد الانتظار', confirmed:'مؤكد', shipped:'مُرسَل', delivered:'تمّ التسليم', cancelled:'ملغي' }[v]||v);
   function downloadJSON(filename, data){
     const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
     const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   }
-
   function renderAll(){ renderList(); renderCharts(); }
 
+  // بدء التشغيل: حمّل الأصناف من الملف أو من التخزين المحلي، وحاول قراءة orders.json عند الاستضافة
   loadVarieties().then(()=>{
-    // Try to fetch orders.json if served via http(s)
     fetch('orders.json', {cache:'no-store'}).then(r=> r.ok ? r.json() : Promise.reject()).then(arr=>{
       if(Array.isArray(arr)) orders = arr;
-      renderAll();
-      showTab('new');
+      renderAll(); showTab('new');
     }).catch(()=>{
       orders = safeGet(STORAGE_KEY, []);
       renderAll(); showTab('new');
