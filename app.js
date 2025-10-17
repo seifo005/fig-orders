@@ -1,6 +1,6 @@
 (() => {
-  const STORAGE_KEY = 'figPreordersV4_Orders';
-  const VARS_KEY = 'figVarietiesV4';
+  const STORAGE_KEY = 'figPreordersV5_Orders';
+  const VARS_KEY = 'figVarietiesV5';
   const STATUS_OPTIONS = ['pending','confirmed','shipped','delivered','cancelled'];
 
   const $ = (id) => document.getElementById(id);
@@ -100,8 +100,7 @@
   // ===== الطلبات =====
   let orders = safeGet(STORAGE_KEY, []);
   let ordersHandle = null;
-  let editingId = null;
-  let selectedIds = new Set();
+  let editingId = null; // وضع التحرير
 
   async function linkOrdersJson(){
     if(!window.showOpenFilePicker){ alert('هذه الميزة مدعومة على Chrome/Edge. استخدم التصدير/الاستيراد للمتصفحات الأخرى.'); return; }
@@ -166,7 +165,7 @@
     if(!customerName || !phone){ alert('أكمل الاسم والهاتف'); return; }
     if(draftItems.length===0){ alert('أضف عنصرًا واحدًا على الأقل'); return; }
 
-    if(editingId){
+    if(editingId){ // تحديث فقط
       const idx = orders.findIndex(x=> x.id === editingId);
       if(idx > -1){
         orders[idx] = {
@@ -185,7 +184,7 @@
         };
         await commitOrders();
       }
-    } else {
+    } else { // إنشاء جديد
       const order = {
         id: uid(),
         createdAt: new Date().toISOString(),
@@ -205,15 +204,35 @@
       await commitOrders();
     }
 
+    exitEditMode();
+    renderAll(); showTab('list');
+  }
+
+  function enterEditMode(order){
+    editingId = order.id;
+    $('customerName').value = order.customerName;
+    $('phone').value = order.phone;
+    $('city').value = order.city||'';
+    $('address').value = order.address||'';
+    $('status').value = order.status;
+    $('deliveryMethod').value = order.deliveryMethod;
+    $('depositDZD').value = order.depositDZD||0;
+    $('notes').value = order.notes||'';
+    draftItems = (order.items||[]).map(i=>({...i}));
+    renderDraftItems();
+    const badge = $('editBadge'); if(badge) badge.style.display = 'inline-block';
+    const submitBtn = document.querySelector('#orderForm button[type="submit"]'); if(submitBtn) submitBtn.textContent = 'تحديث الحجز';
+  }
+  function exitEditMode(){
     editingId = null;
     $('orderForm').reset(); resetDraft(); populateVarietySelect();
-    renderAll(); showTab('list');
+    const badge = $('editBadge'); if(badge) badge.style.display = 'none';
+    const submitBtn = document.querySelector('#orderForm button[type="submit"]'); if(submitBtn) submitBtn.textContent = 'حفظ الحجز';
   }
 
   // ===== قائمة الطلبات + التصدير للمحدد =====
   function renderList(){
     const tbody = $('ordersBody'); tbody.innerHTML='';
-    selectedIds = new Set();
     const q = ($('filter-q').value||'').toLowerCase().trim();
     const st = $('filter-status').value;
     const filtered = orders.filter(o=>{
@@ -242,20 +261,7 @@
       tbody.appendChild(tr);
     });
 
-    tbody.querySelectorAll('input[type="checkbox"][data-id]').forEach(ch=>{
-      ch.addEventListener('change', (e)=>{
-        const id = ch.getAttribute('data-id');
-        if(e.target.checked) selectedIds.add(id); else selectedIds.delete(id);
-      });
-    });
-    const checkAll = $('checkAll'); if(checkAll){
-      checkAll.checked = false;
-      checkAll.onchange = (e)=>{
-        const checks = tbody.querySelectorAll('input[type="checkbox"][data-id]');
-        checks.forEach(ch=>{ ch.checked = e.target.checked; const id = ch.getAttribute('data-id'); if(e.target.checked){selectedIds.add(id);} else {selectedIds.delete(id);} });
-      };
-    }
-
+    // row actions
     tbody.querySelectorAll('button[data-del]').forEach(btn=> btn.addEventListener('click', async ()=>{
       if(!confirm('حذف هذا الحجز نهائيًا؟')) return;
       orders = orders.filter(o=>o.id!==btn.dataset.del);
@@ -263,16 +269,7 @@
     }));
     tbody.querySelectorAll('button[data-edit]').forEach(btn=> btn.addEventListener('click', ()=>{
       const o = orders.find(x=>x.id===btn.dataset.edit); if(!o) return;
-      showTab('new'); editingId = o.id;
-      $('customerName').value = o.customerName;
-      $('phone').value = o.phone;
-      $('city').value = o.city||'';
-      $('address').value = o.address||'';
-      $('status').value = o.status;
-      $('deliveryMethod').value = o.deliveryMethod;
-      $('depositDZD').value = o.depositDZD||0;
-      $('notes').value = o.notes||'';
-      draftItems = (o.items||[]).map(i=>({...i})); renderDraftItems();
+      showTab('new'); enterEditMode(o);
     }));
     tbody.querySelectorAll('select[data-status]').forEach(sel=> sel.addEventListener('change', async ()=>{
       const o=orders.find(x=>x.id===sel.dataset.status); if(!o) return;
@@ -281,9 +278,12 @@
     }));
   }
 
+  // Export selected — compute on click from DOM (robust even بعد إعادة الرسم)
   $('btn-export-selected')?.addEventListener('click', ()=>{
-    if(!selectedIds || selectedIds.size===0){ alert('اختر عنصرًا واحدًا على الأقل من الجدول.'); return; }
-    const sel = orders.filter(o=> selectedIds.has(o.id));
+    const checks = Array.from(document.querySelectorAll('#ordersBody input[type="checkbox"][data-id]:checked'));
+    if(checks.length===0){ alert('اختر عنصرًا واحدًا على الأقل من الجدول.'); return; }
+    const ids = new Set(checks.map(ch=> ch.getAttribute('data-id')));
+    const sel = orders.filter(o=> ids.has(o.id));
     downloadJSON(`fig-preorders-selection-${Date.now()}.json`, sel);
   });
 
@@ -342,7 +342,7 @@
     const idx = Number(btn.getAttribute('data-del-item')); draftItems.splice(idx,1); renderDraftItems();
   });
   $('orderForm').addEventListener('submit', submitOrder);
-  $('resetForm').addEventListener('click', ()=>{ editingId = null; resetDraft(); });
+  $('resetForm').addEventListener('click', ()=>{ exitEditMode(); });
   $('btn-link-orders-json')?.addEventListener('click', linkOrdersJson);
   $('btn-link-varieties-json')?.addEventListener('click', linkVarietiesJson);
   $('filter-q').addEventListener('input', renderList);
